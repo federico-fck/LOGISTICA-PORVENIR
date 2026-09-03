@@ -83,9 +83,20 @@ En un volumen nuevo, Docker importa automaticamente:
 
 ```text
 BASE DE DATOS/insumos_dbeaver_actual.pg16.sql
+BACKEND/src/database/migrations/20260716_areas_operativas_finales.sql
 ```
 
 Ese archivo es un dump exportado desde la base local de DBeaver `insumos` y carga tus datos reales: usuarios, areas, roles, almacenes, proveedores, insumos, inventario, pedidos, compras, recepciones, despachos, notificaciones y auditoria.
+Luego se aplica la migracion de areas finales para dejar el catalogo en:
+
+```text
+Operaciones / Mina
+Mantenimiento / Maestranza
+Seguridad Industrial (HSE)
+Logística / Almacenes
+Administración / Gerencia
+Otros / Terceros
+```
 
 Importante: PostgreSQL solo usa `POSTGRES_DB`, `POSTGRES_USER` y `POSTGRES_PASSWORD` la primera vez que inicializa el volumen. Si cambiaste `.env.docker` despues de levantar el proyecto, o si ya existia un volumen con otra contraseña/base, debes recrear el volumen:
 

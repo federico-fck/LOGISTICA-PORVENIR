@@ -9,6 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - "./BASE DE DATOS/insumos_dbeaver_actual.pg16.sql:/docker-entrypoint-initdb.d/01-insumos-dbeaver-actual.sql:ro"
+      - "./BACKEND/src/database/migrations/20260716_areas_operativas_finales.sql:/docker-entrypoint-initdb.d/02-areas-operativas-finales.sql:ro"
     healthcheck:
       test:
         [
