@@ -1,0 +1,1213 @@
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { catchError, forkJoin, of } from 'rxjs';
+
+import { InventarioDespachosService } from '../../core/services/inventario-despachos.service';
+import { InsumosService } from '../../core/services/insumos.service';
+import { AlmacenesService } from '../../core/services/almacenes.service';
+
+import { Insumo } from '../../core/models/insumo.model';
+import { Almacen } from '../../core/models/almacen.model';
+import {
+  Despacho,
+  InventarioItem,
+  MovimientoInventario,
+} from '../../core/models/inventario-despachos.model';
+
+type TabInventario = 'inventario' | 'stock' | 'movimientos' | 'despachos';
+type ModoModal = 'ninguno' | 'movimiento' | 'despacho' | 'detalle-despacho';
+
+@Component({
+  selector: 'app-inventario-despachos',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './inventario-despachos.html',
+  styleUrl: './inventario-despachos.css',
+})
+export class InventarioDespachos {
+  private readonly inventarioService = inject(InventarioDespachosService);
+  private readonly insumosService = inject(InsumosService);
+  private readonly almacenesService = inject(AlmacenesService);
+  private readonly formBuilder = inject(FormBuilder);
+
+  cargando = signal(false);
+  guardando = signal(false);
+  error = signal('');
+  mensaje = signal('');
+
+  tabActual = signal<TabInventario>('inventario');
+  busqueda = signal('');
+
+  inventario = signal<InventarioItem[]>([]);
+  stockCritico = signal<InventarioItem[]>([]);
+  movimientos = signal<MovimientoInventario[]>([]);
+  despachos = signal<Despacho[]>([]);
+  pedidosAprobados = signal<any[]>([]);
+  areasSistema = signal<any[]>([]);
+  usuariosSistema = signal<any[]>([]);
+
+  insumos = signal<Insumo[]>([]);
+  almacenes = signal<Almacen[]>([]);
+
+  modoModal = signal<ModoModal>('ninguno');
+  despachoSeleccionado = signal<Despacho | null>(null);
+
+  modalAbierto = computed(() => this.modoModal() !== 'ninguno');
+
+  formDespacho = this.formBuilder.nonNullable.group({
+    idPedido: ['', [Validators.required]],
+    idAlmacenOrigen: ['', [Validators.required]],
+    observaciones: [''],
+  });
+
+  totalItemsInventario = computed(() => this.inventario().length);
+
+  totalStockCritico = computed(() => this.stockCritico().length);
+
+  totalMovimientos = computed(() => this.movimientos().length);
+
+  totalDespachos = computed(() => this.despachos().length);
+
+  stockDisponibleTotal = computed(() => {
+    return this.inventario().reduce((total, item) => {
+      return total + Number(this.stockDisponible(item) || 0);
+    }, 0);
+  });
+
+  inventarioFiltrado = computed(() => {
+    const texto = this.busqueda().trim().toLowerCase();
+
+    if (!texto) {
+      return this.inventario();
+    }
+
+    return this.inventario().filter((item) => {
+      return (
+        this.codigoInsumo(item).toLowerCase().includes(texto) ||
+        this.nombreInsumo(item).toLowerCase().includes(texto) ||
+        this.nombreAlmacen(item).toLowerCase().includes(texto) ||
+        this.tipoAlmacen(item).toLowerCase().includes(texto) ||
+        this.estadoStock(item).toLowerCase().includes(texto)
+      );
+    });
+  });
+
+  stockFiltrado = computed(() => {
+    const texto = this.busqueda().trim().toLowerCase();
+
+    if (!texto) {
+      return this.stockCritico();
+    }
+
+    return this.stockCritico().filter((item) => {
+      return (
+        this.codigoInsumo(item).toLowerCase().includes(texto) ||
+        this.nombreInsumo(item).toLowerCase().includes(texto) ||
+        this.nombreAlmacen(item).toLowerCase().includes(texto) ||
+        this.estadoStock(item).toLowerCase().includes(texto)
+      );
+    });
+  });
+
+  movimientosFiltrados = computed(() => {
+    const texto = this.busqueda().trim().toLowerCase();
+
+    if (!texto) {
+      return this.movimientos();
+    }
+
+    return this.movimientos().filter((item) => {
+      return (
+        this.movimientoTipo(item).toLowerCase().includes(texto) ||
+        this.movimientoInsumo(item).toLowerCase().includes(texto) ||
+        this.movimientoAlmacen(item).toLowerCase().includes(texto) ||
+        this.movimientoMotivo(item).toLowerCase().includes(texto)
+      );
+    });
+  });
+
+  despachosFiltrados = computed(() => {
+    const texto = this.busqueda().trim().toLowerCase();
+
+    if (!texto) {
+      return this.despachos();
+    }
+
+    return this.despachos().filter((item) => {
+      return (
+        this.numeroDespacho(item).toLowerCase().includes(texto) ||
+        this.almacenOrigen(item).toLowerCase().includes(texto) ||
+        this.areaDestino(item).toLowerCase().includes(texto) ||
+        this.estadoDespacho(item).toLowerCase().includes(texto) ||
+        this.usuarioResponsable(item).toLowerCase().includes(texto)
+      );
+    });
+  });
+
+  formMovimiento = this.formBuilder.nonNullable.group({
+    idInsumo: ['', [Validators.required]],
+    idAlmacen: ['', [Validators.required]],
+    tipoMovimiento: ['', [Validators.required]],
+    cantidad: ['', [Validators.required, Validators.min(0.01)]],
+    motivoMovimiento: ['', [Validators.required]],
+    observaciones: [''],
+  });
+
+  tiposMovimiento = [
+    'AJUSTE_POSITIVO',
+    'AJUSTE_NEGATIVO',
+    'ENTRADA_COMPRA',
+    'SALIDA_DESPACHO',
+    'DEVOLUCION',
+    'CORRECCION',
+  ];
+
+  ngOnInit() {
+    this.cargarDatos();
+  }
+
+  cargarDatos() {
+    this.cargando.set(true);
+    this.error.set('');
+    this.mensaje.set('');
+
+    forkJoin({
+      inventario: this.inventarioService.inventario().pipe(catchError(() => of([]))),
+      stock: this.inventarioService.stockBajo().pipe(catchError(() => of([]))),
+      movimientos: this.inventarioService.movimientos().pipe(catchError(() => of([]))),
+      despachos: this.inventarioService.despachos().pipe(catchError(() => of([]))),
+      pedidosAprobados: this.inventarioService.pedidosAprobadosParaDespacho().pipe(catchError(() => of([]))),
+      insumos: this.insumosService.listar().pipe(catchError(() => of([]))),
+      almacenes: this.almacenesService.listar().pipe(catchError(() => of([]))),
+    }).subscribe({
+      next: (data) => {
+        this.inventario.set(data.inventario as InventarioItem[]);
+        this.stockCritico.set(data.stock as InventarioItem[]);
+        this.movimientos.set(data.movimientos as MovimientoInventario[]);
+        this.despachos.set(data.despachos as Despacho[]);
+        this.pedidosAprobados.set(this.filtrarPedidosDisponiblesParaDespacho(data.pedidosAprobados));
+        this.insumos.set(data.insumos as Insumo[]);
+        this.almacenes.set(data.almacenes as Almacen[]);
+        this.cargando.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudo cargar la información de inventario.');
+        this.cargando.set(false);
+      },
+    });
+  }
+
+  cambiarTab(tab: TabInventario) {
+    this.tabActual.set(tab);
+    this.busqueda.set('');
+  }
+
+  cambiarBusqueda(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.busqueda.set(input.value);
+  }
+
+  abrirMovimiento() {
+    this.error.set('');
+    this.mensaje.set('');
+    this.modoModal.set('movimiento');
+
+    this.formMovimiento.reset({
+      idInsumo: '',
+      idAlmacen: '',
+      tipoMovimiento: '',
+      cantidad: '',
+      motivoMovimiento: '',
+      observaciones: '',
+    });
+  }
+
+  cerrarModal() {
+    this.modoModal.set('ninguno');
+    this.despachoSeleccionado.set(null);
+    this.formMovimiento.reset();
+    this.formDespacho.reset();
+  }
+
+  guardarMovimiento() {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (this.formMovimiento.invalid) {
+      this.formMovimiento.markAllAsTouched();
+      this.error.set('Complete los campos obligatorios del movimiento.');
+      return;
+    }
+
+    const valores = this.formMovimiento.getRawValue();
+
+    const tipoMovimiento = valores.tipoMovimiento;
+    const esEntrada = ['ENTRADA_COMPRA', 'AJUSTE_POSITIVO', 'DEVOLUCION'].includes(
+      tipoMovimiento,
+    );
+
+    const payload = {
+      idInsumo: Number(valores.idInsumo),
+      ...(esEntrada
+        ? { idAlmacenDestino: Number(valores.idAlmacen) }
+        : { idAlmacenOrigen: Number(valores.idAlmacen) }),
+      tipoMovimiento,
+      cantidad: Number(valores.cantidad),
+      motivo: valores.motivoMovimiento.trim(),
+      observaciones: valores.observaciones?.trim() || undefined,
+    };
+
+    this.guardando.set(true);
+
+    this.inventarioService.registrarMovimiento(payload).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.mensaje.set('Movimiento registrado correctamente.');
+        this.cerrarModal();
+        this.cargarDatos();
+      },
+      error: (error) => {
+        console.error('Error al registrar movimiento:', error);
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+  abrirDetalleDespacho(despacho: Despacho) {
+    const id = this.idDespacho(despacho);
+
+    if (!id) {
+      this.despachoSeleccionado.set(despacho);
+      this.modoModal.set('detalle-despacho');
+      return;
+    }
+
+    this.inventarioService.buscarDespachoPorId(id).subscribe({
+      next: (data) => {
+        this.despachoSeleccionado.set(data);
+        this.modoModal.set('detalle-despacho');
+      },
+      error: () => {
+        this.despachoSeleccionado.set(despacho);
+        this.modoModal.set('detalle-despacho');
+      },
+    });
+  }
+
+  
+
+  abrirGenerarDespacho() {
+    this.error.set('');
+    this.mensaje.set('');
+    this.modoModal.set('despacho');
+
+    this.formDespacho.reset({
+      idPedido: '',
+      idAlmacenOrigen: '',
+      observaciones: '',
+    });
+
+    this.cargarApoyosDespacho();
+
+    this.inventarioService.pedidosAprobadosParaDespacho().subscribe({
+      next: (data) => {
+        const filtrados = this.filtrarPedidosDisponiblesParaDespacho(data);
+        console.log('Pedidos recibidos para despacho:', data);
+        console.log('Pedidos aprobados disponibles:', filtrados);
+        this.pedidosAprobados.set(filtrados);
+      },
+      error: (error) => {
+        console.error('Error al cargar pedidos aprobados:', error);
+        this.pedidosAprobados.set([]);
+        this.error.set('No se pudieron cargar los pedidos aprobados para despacho.');
+      },
+    });
+  }
+
+  guardarDespacho() {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (this.formDespacho.invalid) {
+      this.formDespacho.markAllAsTouched();
+      this.error.set('Seleccione un pedido aprobado y un almacén origen.');
+      return;
+    }
+
+    const valores = this.formDespacho.getRawValue();
+    const pedido = this.pedidoDespachoSeleccionado();
+
+    if (!pedido) {
+      this.error.set('Seleccione un pedido aprobado válido.');
+      return;
+    }
+
+    const detalles = this.detallesPedidoDespacho(pedido)
+      .map((detalle: any) => ({
+        idDetallePedido: this.idDetallePedidoDespacho(detalle),
+        idInsumo: this.idInsumoDetalleDespacho(detalle),
+        cantidadDespachada: this.cantidadADespacharDetalle(detalle),
+      }))
+      .filter((detalle: any) => detalle.idInsumo && detalle.cantidadDespachada > 0);
+
+    const payload: any = {
+      idPedido: Number(valores.idPedido),
+      idAlmacenOrigen: Number(valores.idAlmacenOrigen),
+      observaciones: valores.observaciones?.trim() || undefined,
+      detalles,
+    };
+
+    this.guardando.set(true);
+
+    this.inventarioService.crearDespacho(payload).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.mensaje.set('Despacho generado correctamente.');
+        this.cerrarModal();
+        this.cambiarTab('despachos');
+        this.cargarDatos();
+      },
+      error: (error) => {
+        console.error('Error al generar despacho:', error);
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+
+
+
+
+
+  extraerListaPedidosParaDespacho(data: any): any[] {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.pedidos)) return data.pedidos;
+    if (Array.isArray(data?.resultados)) return data.resultados;
+    if (Array.isArray(data?.registros)) return data.registros;
+    if (Array.isArray(data?.content)) return data.content;
+    if (Array.isArray(data?.rows)) return data.rows;
+    return [];
+  }
+
+  normalizarTextoDespacho(valor: any): string {
+    if (valor === null || valor === undefined) {
+      return '';
+    }
+
+    const texto = typeof valor === 'object'
+      ? JSON.stringify(valor)
+      : String(valor);
+
+    return texto
+      .trim()
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  filtrarPedidosDisponiblesParaDespacho(data: any): any[] {
+    const lista = this.extraerListaPedidosParaDespacho(data);
+
+    return lista.filter((pedido: any) => {
+      const textoCompleto = this.normalizarTextoDespacho(pedido);
+
+      const estado = this.normalizarTextoDespacho(
+        pedido?.estado ||
+          pedido?.estadoPedido ||
+          pedido?.estado_pedido ||
+          pedido?.estadoSolicitud ||
+          pedido?.estado_solicitud ||
+          pedido?.estadoAtencion ||
+          pedido?.estado_atencion ||
+          pedido?.pedido?.estado ||
+          pedido?.pedido?.estadoPedido ||
+          '',
+      );
+
+      const aprobacion = this.normalizarTextoDespacho(
+        pedido?.estadoAprobacion ||
+          pedido?.estado_aprobacion ||
+          pedido?.aprobacion ||
+          pedido?.estadoRevision ||
+          pedido?.estado_revision ||
+          pedido?.resultadoAprobacion ||
+          pedido?.resultado_aprobacion ||
+          pedido?.pedido?.estadoAprobacion ||
+          pedido?.pedido?.estado_aprobacion ||
+          '',
+      );
+
+      const bloqueados = [
+        'RECHAZADO',
+        'CANCELADO',
+        'ANULADO',
+        'ELIMINADO',
+        'ENTREGADO_COMPLETO',
+        'DESPACHADO_COMPLETO',
+      ];
+
+      const estaBloqueado =
+        bloqueados.includes(estado) ||
+        bloqueados.some((valor) => textoCompleto.includes(valor));
+
+      if (estaBloqueado) {
+        return false;
+      }
+
+      return (
+        estado === 'APROBADO' ||
+        aprobacion === 'APROBADO' ||
+        textoCompleto.includes('APROBADO')
+      );
+    });
+  }
+
+
+  textoLimpioDespacho(valor: any, fallback = 'Sin dato'): string {
+    if (valor === null || valor === undefined) return fallback;
+
+    if (typeof valor === 'object') {
+      const posible =
+        valor?.nombreArea ||
+        valor?.nombre_area ||
+        valor?.nombreCompleto ||
+        valor?.nombre_completo ||
+        valor?.nombreInsumo ||
+        valor?.nombre_insumo ||
+        valor?.nombre ||
+        valor?.descripcion ||
+        valor?.codigo ||
+        valor?.codigoInsumo ||
+        valor?.codigo_insumo;
+
+      return this.textoLimpioDespacho(posible, fallback);
+    }
+
+    const texto = String(valor).trim();
+
+    if (!texto || texto === '[object Object]' || texto.toLowerCase() === 'null') {
+      return fallback;
+    }
+
+    return texto;
+  }
+
+  numeroPositivoDespacho(valor: any): number {
+    const numero = Number(valor ?? 0);
+    return Number.isFinite(numero) && numero > 0 ? numero : 0;
+  }
+
+  areaPedidoDespacho(pedido: any): string {
+    const areaDirecta =
+      pedido?.areaSolicitante ||
+      pedido?.area_solicitante ||
+      pedido?.area ||
+      pedido?.pedido?.areaSolicitante ||
+      pedido?.pedido?.area_solicitante ||
+      pedido?.pedido?.area;
+
+    const textoDirecto = this.textoLimpioDespacho(areaDirecta, '');
+
+    if (textoDirecto) {
+      return textoDirecto;
+    }
+
+    const idArea = Number(
+      pedido?.idAreaSolicitante ||
+        pedido?.id_area_solicitante ||
+        pedido?.idArea ||
+        pedido?.id_area ||
+        pedido?.pedido?.idAreaSolicitante ||
+        pedido?.pedido?.id_area_solicitante ||
+        0,
+    );
+
+    const area = this.areasSistema().find((item: any) => {
+      const id = Number(
+        item?.idArea ||
+          item?.id_area ||
+          item?.id ||
+          item?.idAreaSolicitante ||
+          item?.id_area_solicitante ||
+          0,
+      );
+
+      return id === idArea;
+    });
+
+    return this.textoLimpioDespacho(area, 'Sin área');
+  }
+
+  solicitantePedidoDespacho(pedido: any): string {
+    const usuarioDirecto =
+      pedido?.usuarioSolicitante ||
+      pedido?.usuario_solicitante ||
+      pedido?.solicitante ||
+      pedido?.pedido?.usuarioSolicitante ||
+      pedido?.pedido?.usuario_solicitante ||
+      pedido?.pedido?.solicitante;
+
+    const textoDirecto = this.textoLimpioDespacho(usuarioDirecto, '');
+
+    if (textoDirecto) {
+      return textoDirecto;
+    }
+
+    const idUsuario = Number(
+      pedido?.idUsuarioSolicitante ||
+        pedido?.id_usuario_solicitante ||
+        pedido?.idUsuario ||
+        pedido?.id_usuario ||
+        pedido?.pedido?.idUsuarioSolicitante ||
+        pedido?.pedido?.id_usuario_solicitante ||
+        0,
+    );
+
+    const usuario = this.usuariosSistema().find((item: any) => {
+      const id = Number(
+        item?.idUsuario ||
+          item?.id_usuario ||
+          item?.id ||
+          0,
+      );
+
+      return id === idUsuario;
+    });
+
+    return this.textoLimpioDespacho(usuario, 'Solicitante');
+  }
+
+  labelPedidoDespacho(pedido: any): string {
+    return this.numeroPedidoDespacho(pedido) + ' - ' + this.areaPedidoDespacho(pedido) + ' - ' + this.solicitantePedidoDespacho(pedido);
+  }
+
+  detallesPedidoDespacho(pedido: any): any[] {
+    const detalles =
+      pedido?.detalles ||
+      pedido?.detallePedidos ||
+      pedido?.detalle_pedidos ||
+      pedido?.detallesPedido ||
+      pedido?.detalles_pedido ||
+      pedido?.pedido?.detalles ||
+      pedido?.pedido?.detallePedidos ||
+      pedido?.pedido?.detallesPedido ||
+      [];
+
+    return Array.isArray(detalles) ? detalles : [];
+  }
+
+  idDetallePedidoDespacho(detalle: any): number {
+    return Number(
+      detalle?.idDetallePedido ||
+        detalle?.id_detalle_pedido ||
+        detalle?.idDetalle ||
+        detalle?.id_detalle ||
+        detalle?.id ||
+        0,
+    );
+  }
+
+  idInsumoDetalleDespacho(detalle: any): number {
+    return Number(
+      detalle?.idInsumo ||
+        detalle?.id_insumo ||
+        detalle?.insumo?.idInsumo ||
+        detalle?.insumo?.id_insumo ||
+        detalle?.insumo?.id ||
+        0,
+    );
+  }
+
+  nombreInsumoDetalleDespacho(detalle: any): string {
+    const insumo =
+      detalle?.insumo ||
+      detalle?.nombreInsumo ||
+      detalle?.nombre_insumo ||
+      detalle?.descripcionInsumo ||
+      detalle?.descripcion_insumo;
+
+    return this.textoLimpioDespacho(insumo, 'Sin insumo');
+  }
+
+  codigoInsumoDetalleDespacho(detalle: any): string {
+    const codigo =
+      detalle?.codigoInsumo ||
+      detalle?.codigo_insumo ||
+      detalle?.insumo?.codigoInsumo ||
+      detalle?.insumo?.codigo_insumo ||
+      detalle?.insumo?.codigo ||
+      detalle?.codigo;
+
+    return this.textoLimpioDespacho(codigo, '');
+  }
+
+  cantidadSolicitadaDetalleDespacho(detalle: any): number {
+    const directas = [
+      detalle?.cantidadAprobada,
+      detalle?.cantidad_aprobada,
+      detalle?.cantidadSolicitada,
+      detalle?.cantidad_solicitada,
+      detalle?.cantidadRequerida,
+      detalle?.cantidad_requerida,
+      detalle?.cantidadPedida,
+      detalle?.cantidad_pedida,
+      detalle?.cantidad,
+    ];
+
+    for (const valor of directas) {
+      const numero = Number(valor);
+      if (Number.isFinite(numero) && numero > 0) return numero;
+    }
+
+    for (const [clave, valor] of Object.entries(detalle || {})) {
+      const nombre = String(clave).toLowerCase();
+      const numero = Number(valor);
+
+      if (
+        nombre.includes('cantidad') &&
+        !nombre.includes('despach') &&
+        !nombre.includes('entreg') &&
+        !nombre.includes('atendid') &&
+        Number.isFinite(numero) &&
+        numero > 0
+      ) {
+        return numero;
+      }
+    }
+
+    return 0;
+  }
+
+  cantidadDespachadaDetalleDespacho(detalle: any): number {
+    return (
+      this.numeroPositivoDespacho(detalle?.cantidadDespachada) ||
+      this.numeroPositivoDespacho(detalle?.cantidad_despachada) ||
+      this.numeroPositivoDespacho(detalle?.cantidadEntregada) ||
+      this.numeroPositivoDespacho(detalle?.cantidad_entregada) ||
+      this.numeroPositivoDespacho(detalle?.cantidadAtendida) ||
+      this.numeroPositivoDespacho(detalle?.cantidad_atendida) ||
+      0
+    );
+  }
+
+  cantidadPendienteDetalleDespacho(detalle: any): number {
+    const directa =
+      Number(detalle?.cantidadPendiente || 0) ||
+      Number(detalle?.cantidad_pendiente || 0) ||
+      Number(detalle?.pendiente || 0);
+
+    if (Number.isFinite(directa) && directa > 0) {
+      return directa;
+    }
+
+    const solicitada = this.cantidadSolicitadaDetalleDespacho(detalle);
+    const despachada =
+      Number(detalle?.cantidadDespachada || 0) ||
+      Number(detalle?.cantidad_despachada || 0) ||
+      Number(detalle?.cantidadEntregada || 0) ||
+      Number(detalle?.cantidad_entregada || 0) ||
+      0;
+
+    return Math.max(solicitada - despachada, 0);
+  }
+
+  cantidadADespacharDetalle(detalle: any): number {
+    return this.cantidadPendienteDetalleDespacho(detalle);
+  }
+
+  cargarApoyosDespacho() {
+    this.inventarioService.areasSistema().subscribe({
+      next: (data) => {
+        this.areasSistema.set(this.extraerListaGenericaDespacho(data));
+      },
+      error: () => {
+        this.areasSistema.set([]);
+      },
+    });
+
+    this.inventarioService.usuariosSistema().subscribe({
+      next: (data) => {
+        this.usuariosSistema.set(this.extraerListaGenericaDespacho(data));
+      },
+      error: () => {
+        this.usuariosSistema.set([]);
+      },
+    });
+  }
+
+  extraerListaGenericaDespacho(data: any): any[] {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.registros)) return data.registros;
+    if (Array.isArray(data?.areas)) return data.areas;
+    if (Array.isArray(data?.usuarios)) return data.usuarios;
+    return [];
+  }
+
+  pedidoDespachoSeleccionado(): any {
+    const idPedido = Number(this.formDespacho.get('idPedido')?.value || 0);
+
+    if (!idPedido) {
+      return null;
+    }
+
+    return this.pedidosAprobados().find((pedido: any) => {
+      return this.idPedidoDespacho(pedido) === idPedido;
+    }) || null;
+  }
+
+  idPedidoDespacho(pedido: any): number {
+    return Number(
+      pedido?.idPedido ||
+        pedido?.id_pedido ||
+        pedido?.pedido?.idPedido ||
+        pedido?.pedido?.id_pedido ||
+        0,
+    );
+  }
+
+  numeroPedidoDespacho(pedido: any): string {
+    return String(
+      pedido?.numeroPedido ||
+        pedido?.numero_pedido ||
+        pedido?.codigoPedido ||
+        pedido?.codigo_pedido ||
+        pedido?.pedido?.numeroPedido ||
+        pedido?.pedido?.numero_pedido ||
+        pedido?.pedido?.codigoPedido ||
+        pedido?.pedido?.codigo_pedido ||
+        `PED-${this.idPedidoDespacho(pedido)}`,
+    );
+  }
+
+  normalizarClaveDespacho(valor: string): string {
+    return String(valor || '')
+      .toLowerCase()
+      .replace(/_/g, '')
+      .replace(/-/g, '')
+      .trim();
+  }
+
+  buscarTextoPedidoDespacho(objeto: any, claves: string[]): string {
+    const clavesNormalizadas = claves.map((clave) => this.normalizarClaveDespacho(clave));
+    const visitados = new Set<any>();
+    const cola: any[] = [objeto];
+
+    while (cola.length) {
+      const actual = cola.shift();
+
+      if (!actual || visitados.has(actual)) {
+        continue;
+      }
+
+      visitados.add(actual);
+
+      if (typeof actual !== 'object') {
+        continue;
+      }
+
+      for (const [clave, valor] of Object.entries(actual)) {
+        const claveNormalizada = this.normalizarClaveDespacho(clave);
+
+        if (clavesNormalizadas.includes(claveNormalizada)) {
+          if (valor !== null && valor !== undefined && typeof valor !== 'object') {
+            const texto = String(valor).trim();
+            if (texto && texto !== '[object Object]') {
+              return texto;
+            }
+          }
+
+          if (valor && typeof valor === 'object') {
+            for (const subValor of Object.values(valor)) {
+              if (subValor !== null && subValor !== undefined && typeof subValor !== 'object') {
+                const texto = String(subValor).trim();
+                if (texto && texto !== '[object Object]') {
+                  return texto;
+                }
+              }
+            }
+          }
+        }
+
+        if (valor && typeof valor === 'object') {
+          cola.push(valor);
+        }
+      }
+    }
+
+    return '';
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  stockDisponibleParaDespacho(detalle: any): number {
+    const idInsumo = this.idInsumoDetalleDespacho(detalle);
+    const idAlmacen = Number(this.formDespacho.get('idAlmacenOrigen')?.value || 0);
+
+    const item = this.inventario().find((registro: any) => {
+      const registroIdInsumo = Number(
+        registro?.idInsumo ||
+          registro?.id_insumo ||
+          registro?.insumo?.idInsumo ||
+          registro?.insumo?.id_insumo ||
+          0,
+      );
+
+      const registroIdAlmacen = Number(
+        registro?.idAlmacen ||
+          registro?.id_almacen ||
+          registro?.almacen?.idAlmacen ||
+          registro?.almacen?.id_almacen ||
+          0,
+      );
+
+      return registroIdInsumo === idInsumo && registroIdAlmacen === idAlmacen;
+    });
+
+    return Number(
+      item?.stockDisponible ||
+        item?.stock_disponible ||
+        item?.stockFisico ||
+        item?.stock_fisico ||
+        0,
+    );
+  }
+
+
+  
+
+  textoAlmacenDespacho(almacen: any): string {
+    const codigo = String(
+      almacen?.codigoAlmacen ||
+        almacen?.codigo_almacen ||
+        almacen?.codigo ||
+        '',
+    ).trim();
+
+    const nombre = String(
+      almacen?.nombreAlmacen ||
+        almacen?.nombre_almacen ||
+        almacen?.nombre ||
+        'Sin almacén',
+    ).trim();
+
+    return codigo ? `${codigo} - ${nombre}` : nombre;
+  }
+
+
+  obtenerMensajeErrorBackend(error: any): string {
+    const mensaje = error?.error?.message;
+
+    if (Array.isArray(mensaje)) {
+      return mensaje.join(' | ');
+    }
+
+    if (typeof mensaje === 'string') {
+      return mensaje;
+    }
+
+    if (error?.error?.error) {
+      return error.error.error;
+    }
+
+    return 'No se pudo completar la operación. Revise los datos enviados.';
+  }
+
+  valor(item: Record<string, unknown>, camel: string, snake: string): any {
+    return item[camel] ?? item[snake] ?? '';
+  }
+
+  codigoInsumo(item: InventarioItem): string {
+    return String(
+      item.codigoInterno ||
+        item.codigo_interno ||
+        item.insumo?.codigoInterno ||
+        item.insumo?.codigo_interno ||
+        'Sin código',
+    );
+  }
+
+  nombreInsumo(item: InventarioItem): string {
+    return String(
+      item.nombreInsumo ||
+        item.nombre_insumo ||
+        item.insumo?.nombreInsumo ||
+        item.insumo?.nombre_insumo ||
+        'Sin insumo',
+    );
+  }
+
+  nombreAlmacen(item: InventarioItem): string {
+    return String(
+      item.nombreAlmacen ||
+        item.nombre_almacen ||
+        item.almacen?.nombreAlmacen ||
+        item.almacen?.nombre_almacen ||
+        'Sin almacén',
+    );
+  }
+
+  tipoAlmacen(item: InventarioItem): string {
+    return String(
+      item.tipoAlmacen ||
+        item.tipo_almacen ||
+        item.almacen?.tipoAlmacen ||
+        item.almacen?.tipo_almacen ||
+        'Sin tipo',
+    );
+  }
+
+  stockFisico(item: InventarioItem): string | number {
+    return item.stockFisico || item.stock_fisico || 0;
+  }
+
+  stockReservado(item: InventarioItem): string | number {
+    return item.stockReservado || item.stock_reservado || 0;
+  }
+
+  stockDisponible(item: InventarioItem): string | number {
+    return item.stockDisponible || item.stock_disponible || 0;
+  }
+
+  estadoStock(item: InventarioItem): string {
+    return String(item.estadoStock || item.estado_stock || item.estado || 'NORMAL');
+  }
+
+  movimientoTipo(item: MovimientoInventario): string {
+    return String(item.tipoMovimiento || item.tipo_movimiento || 'Sin tipo');
+  }
+
+  movimientoInsumo(item: MovimientoInventario): string {
+    const data = item as any;
+    return String(
+      item.nombreInsumo ||
+        item.nombre_insumo ||
+        data.insumo?.nombreInsumo ||
+        data.insumo?.nombre_insumo ||
+        'Sin insumo',
+    );
+  }
+
+  movimientoAlmacen(item: MovimientoInventario): string {
+    const data = item as any;
+    const origen = data.almacenOrigen || data.almacen_origen;
+    const destino = data.almacenDestino || data.almacen_destino || data.almacen;
+    const almacen = destino || origen;
+
+    return String(
+      item.nombreAlmacen ||
+        item.nombre_almacen ||
+        almacen?.nombreAlmacen ||
+        almacen?.nombre_almacen ||
+        almacen?.codigoAlmacen ||
+        almacen?.codigo_almacen ||
+        'Sin almacén',
+    );
+  }
+
+  movimientoCantidad(item: MovimientoInventario): string | number {
+    return item.cantidad || 0;
+  }
+
+  movimientoFecha(item: MovimientoInventario): string {
+    return String(item.fechaMovimiento || item.fecha_movimiento || '');
+  }
+
+  movimientoMotivo(item: MovimientoInventario): string {
+    const data = item as any;
+    return String(
+      item.motivoMovimiento ||
+        item.motivo_movimiento ||
+        data.motivo ||
+        item.observaciones ||
+        'Sin motivo',
+    );
+  }
+
+  idDespacho(item: Despacho): number {
+    return Number(item.idDespacho || item.id_despacho || 0);
+  }
+
+  numeroDespacho(item: Despacho): string {
+    return String(item.numeroDespacho || item.numero_despacho || `DESP-${this.idDespacho(item)}`);
+  }
+
+  fechaDespacho(item: Despacho): string {
+    const data = item as any;
+    return String(
+      item.fechaDespacho ||
+        item.fecha_despacho ||
+        data.fechaRealEntrega ||
+        data.fecha_real_entrega ||
+        data.fechaProgramadaEntrega ||
+        data.fecha_programada_entrega ||
+        '',
+    );
+  }
+
+  almacenOrigen(item: Despacho): string {
+    const data = item as any;
+    const almacen = data.almacenSalida || data.almacen_salida || data.almacenOrigen || data.almacen_origen;
+
+    return String(
+      almacen?.nombreAlmacen ||
+        almacen?.nombre_almacen ||
+        almacen?.codigoAlmacen ||
+        almacen?.codigo_almacen ||
+        item.almacenOrigen ||
+        item.almacen_origen ||
+        'Sin almacén',
+    );
+  }
+
+  areaDestino(item: Despacho): string {
+    const data = item as any;
+    const area = data.areaSolicitante || data.area_solicitante || data.areaDestino || data.area_destino;
+
+    return String(
+      area?.nombreArea ||
+        area?.nombre_area ||
+        item.areaDestino ||
+        item.area_destino ||
+        'Sin destino',
+    );
+  }
+
+  usuarioResponsable(item: Despacho): string {
+    const data = item as any;
+    const usuario =
+      data.responsableAlmacen ||
+      data.responsable_almacen ||
+      data.usuarioResponsable ||
+      data.usuario_responsable ||
+      data.usuarioSolicitante ||
+      data.usuario_solicitante;
+
+    return String(
+      usuario?.nombreCompleto ||
+        usuario?.nombre_completo ||
+        usuario?.nombreUsuario ||
+        usuario?.nombre_usuario ||
+        item.usuarioResponsable ||
+        item.usuario_responsable ||
+        'Sin responsable',
+    );
+  }
+
+  estadoDespacho(item: Despacho): string {
+    return String(item.estadoDespacho || item.estado_despacho || 'Sin estado');
+  }
+
+  detallesDespacho(item: Despacho): any[] {
+    return item.detalles || [];
+  }
+
+  detalleCodigo(detalle: any): string {
+    return String(
+      detalle.codigoInterno ||
+        detalle.codigo_interno ||
+        detalle.insumo?.codigoInterno ||
+        detalle.insumo?.codigo_interno ||
+        'Sin código',
+    );
+  }
+
+  detalleInsumo(detalle: any): string {
+    return String(
+      detalle.nombreInsumo ||
+        detalle.nombre_insumo ||
+        detalle.insumo?.nombreInsumo ||
+        detalle.insumo?.nombre_insumo ||
+        'Sin insumo',
+    );
+  }
+
+  detalleCantidadEntregada(detalle: any): string | number {
+    return (
+      detalle.cantidadEntregada ||
+      detalle.cantidad_entregada ||
+      detalle.cantidadDespachada ||
+      detalle.cantidad_despachada ||
+      0
+    );
+  }
+
+  fechaFormateada(fecha: string): string {
+    if (!fecha) {
+      return 'Sin fecha';
+    }
+
+    return new Date(fecha).toLocaleString('es-BO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  claseStock(estado: string): string {
+    const normalizado = estado?.toUpperCase();
+
+    if (normalizado.includes('CRITICO') || normalizado.includes('BAJO')) {
+      return 'bg-red-100 text-red-700 border-red-200';
+    }
+
+    if (normalizado.includes('MEDIO')) {
+      return 'bg-orange-100 text-orange-700 border-orange-200';
+    }
+
+    return 'bg-green-100 text-green-700 border-green-200';
+  }
+
+  claseMovimiento(tipo: string): string {
+    const normalizado = tipo?.toUpperCase();
+
+    if (normalizado.includes('ENTRADA') || normalizado.includes('POSITIVO')) {
+      return 'bg-green-100 text-green-700 border-green-200';
+    }
+
+    if (normalizado.includes('SALIDA') || normalizado.includes('NEGATIVO')) {
+      return 'bg-red-100 text-red-700 border-red-200';
+    }
+
+    return 'bg-blue-100 text-blue-700 border-blue-200';
+  }
+
+  claseDespacho(estado: string): string {
+    const normalizado = estado?.toUpperCase();
+
+    if (normalizado.includes('ENTREGADO') || normalizado.includes('COMPLETO')) {
+      return 'bg-green-100 text-green-700 border-green-200';
+    }
+
+    if (normalizado.includes('PENDIENTE')) {
+      return 'bg-orange-100 text-orange-700 border-orange-200';
+    }
+
+    return 'bg-blue-100 text-blue-700 border-blue-200';
+  }
+}

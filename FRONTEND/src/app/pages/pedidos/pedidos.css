@@ -1,0 +1,158 @@
+:host input,
+:host select,
+:host textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  font-weight: 700;
+  color-scheme: light;
+}
+
+:host input::placeholder,
+:host textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+:host select option {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  font-weight: 700;
+}
+
+:host .modal-form-control {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1;
+}
+
+:host .filter-control {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border: 2px solid #cbd5e1;
+  border-radius: 1rem;
+  color-scheme: light;
+}
+
+:host .revision-administrativa {
+  --revision-accent: #475569;
+  --revision-border: #cbd5e1;
+  --revision-background: #f8fafc;
+  --revision-soft: #e2e8f0;
+  overflow: hidden;
+  border: 1px solid var(--revision-border);
+  border-radius: 1.5rem;
+  background: var(--revision-background);
+}
+
+:host .revision-administrativa--aprobado {
+  --revision-accent: #15803d;
+  --revision-border: #bbf7d0;
+  --revision-background: #f0fdf4;
+  --revision-soft: #dcfce7;
+}
+
+:host .revision-administrativa--rechazado {
+  --revision-accent: #b91c1c;
+  --revision-border: #fecaca;
+  --revision-background: #fef2f2;
+  --revision-soft: #fee2e2;
+}
+
+:host .revision-administrativa--observado {
+  --revision-accent: #7e22ce;
+  --revision-border: #e9d5ff;
+  --revision-background: #faf5ff;
+  --revision-soft: #f3e8ff;
+}
+
+:host .revision-administrativa--pendiente {
+  --revision-accent: #0369a1;
+  --revision-border: #bae6fd;
+  --revision-background: #f0f9ff;
+  --revision-soft: #e0f2fe;
+}
+
+:host .revision-administrativa__encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--revision-border);
+}
+
+:host .revision-administrativa__eyebrow,
+:host .revision-administrativa__etiqueta {
+  margin: 0;
+  color: var(--revision-accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:host .revision-administrativa__titulo {
+  margin: 0.25rem 0 0;
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+:host .revision-administrativa__estado {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--revision-border);
+  border-radius: 9999px;
+  color: var(--revision-accent);
+  background: var(--revision-soft);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+:host .revision-administrativa__datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--revision-border);
+}
+
+:host .revision-administrativa__dato {
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  background: var(--revision-background);
+}
+
+:host .revision-administrativa__valor {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+:host .revision-administrativa__motivo {
+  margin: 1rem 1.25rem 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--revision-border);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 70%);
+}
+
+:host .revision-administrativa__texto {
+  margin: 0.4rem 0 0;
+  color: #334155;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 767px) {
+  :host .revision-administrativa__encabezado {
+    flex-direction: column;
+  }
+
+  :host .revision-administrativa__datos {
+    grid-template-columns: 1fr;
+  }
+}

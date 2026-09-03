@@ -1,0 +1,4 @@
+:host > div.mb-8,
+:host > .max-w-4xl {
+  display: none;
+}

@@ -1,0 +1,852 @@
+<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Pedidos</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Registro y seguimiento de solicitudes de insumos para operación minera.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <button
+      type="button"
+      (click)="cargarDatos()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Actualizar
+    </button>
+
+    @if (tienePermiso('pedidos.crear')) {
+      <button
+        type="button"
+        (click)="abrirNuevo()"
+        class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+      >
+        + Nuevo pedido
+      </button>
+    }
+  </div>
+</div>
+
+@if (error() && !modalAbierto()) {
+  <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+    {{ error() }}
+  </div>
+}
+
+<div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+      📝
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Total pedidos</p>
+    <h3 class="mt-2 text-4xl font-black text-slate-950">{{ totalPedidos() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-2xl">
+      ⏳
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Pendientes</p>
+    <h3 class="mt-2 text-4xl font-black text-orange-600">{{ totalPendientes() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">
+      ✅
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Aprobados</p>
+    <h3 class="mt-2 text-4xl font-black text-green-600">{{ totalAprobados() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-2xl">
+      ❌
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Rechazados</p>
+    <h3 class="mt-2 text-4xl font-black text-red-600">{{ totalRechazados() }}</h3>
+  </div>
+</div>
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 p-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+      <h3 class="text-xl font-black text-slate-950">Listado de pedidos</h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Pedidos registrados por las áreas solicitantes.
+      </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="limpiarFiltros()"
+        class="rounded-2xl border-2 border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+
+    <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-12">
+      <div class="xl:col-span-4">
+        <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Busqueda</label>
+        <div class="relative">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+
+      <input
+        type="text"
+        [value]="busqueda()"
+        (input)="cambiarBusqueda($event)"
+        class="filter-control w-full py-3 pl-12 pr-4 text-sm font-semibold outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+        placeholder="Buscar por número, estado, usuario, área..."
+      />
+    </div>
+  </div>
+
+      <div class="xl:col-span-5">
+        <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Fecha rapida</label>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          @for (filtro of filtrosFechaRapida; track filtro.valor) {
+            <button
+              type="button"
+              (click)="seleccionarFiltroFechaRapida(filtro.valor)"
+              class="rounded-2xl border-2 px-3 py-3 text-xs font-black transition"
+              [class.border-blue-600]="filtroFechaRapida() === filtro.valor"
+              [class.bg-blue-600]="filtroFechaRapida() === filtro.valor"
+              [class.text-white]="filtroFechaRapida() === filtro.valor"
+              [class.border-slate-200]="filtroFechaRapida() !== filtro.valor"
+              [class.bg-white]="filtroFechaRapida() !== filtro.valor"
+              [class.text-slate-700]="filtroFechaRapida() !== filtro.valor"
+            >
+              {{ filtro.etiqueta }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:col-span-3">
+        <div>
+          <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Fecha desde</label>
+          <input
+            type="date"
+            [value]="filtroFechaDesde()"
+            (input)="cambiarFiltroFechaDesde($event)"
+            class="filter-control w-full px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+          />
+        </div>
+
+        <div>
+          <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Fecha hasta</label>
+          <input
+            type="date"
+            [value]="filtroFechaHasta()"
+            (input)="cambiarFiltroFechaHasta($event)"
+            class="filter-control w-full px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+          />
+        </div>
+      </div>
+
+      <div class="xl:col-span-4">
+        <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Estado</label>
+        <select
+          [value]="filtroEstadoPedido()"
+          (change)="cambiarFiltroEstadoPedido($event)"
+          class="filter-control w-full px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+        >
+          <option value="TODOS">Todos</option>
+          @for (estado of estadosPedidoFiltro; track estado) {
+            <option class="bg-white text-slate-900 font-bold" [value]="estado">{{ estado }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="xl:col-span-4">
+        <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Aprobacion</label>
+        <select
+          [value]="filtroAprobacion()"
+          (change)="cambiarFiltroAprobacion($event)"
+          class="filter-control w-full px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+        >
+          <option value="TODOS">Todos</option>
+          @for (estado of estadosAprobacionFiltro; track estado) {
+            <option class="bg-white text-slate-900 font-bold" [value]="estado">{{ estado }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="xl:col-span-4">
+        <label class="mb-2 block text-xs font-black uppercase tracking-widest text-slate-500">Prioridad</label>
+        <select
+          [value]="filtroPrioridad()"
+          (change)="cambiarFiltroPrioridad($event)"
+          class="filter-control w-full px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+        >
+          <option value="TODOS">Todos</option>
+          @for (prioridad of prioridadesFiltro; track prioridad) {
+            <option class="bg-white text-slate-900 font-bold" [value]="prioridad">{{ prioridad }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+      Cargando pedidos...
+    </div>
+  }
+
+  <div class="lp-table-shell overflow-x-auto">
+    <table class="lp-data-table w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+          <th class="px-6 py-4">Pedido</th>
+          <th class="px-6 py-4">Solicitante</th>
+          <th class="px-6 py-4">Prioridad</th>
+          <th class="px-6 py-4">Estado</th>
+          <th class="px-6 py-4">Aprobación</th>
+          <th class="px-6 py-4 text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (pedido of pedidosFiltrados(); track idPedido(pedido)) {
+          <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+            <td class="px-6 py-4">
+              <p class="font-black text-slate-950">{{ numeroPedido(pedido) }}</p>
+              <p class="text-xs font-semibold text-slate-500">
+                {{ fechaFormateada(fechaPedido(pedido)) }}
+              </p>
+            </td>
+
+            <td class="px-6 py-4">
+              <p class="font-bold text-slate-800">{{ usuarioSolicitante(pedido) }}</p>
+              <p class="text-xs text-slate-500">{{ areaSolicitante(pedido) }}</p>
+              @if (centroCosto(pedido)) {
+                <p class="mt-1 text-xs font-semibold text-blue-600">
+                  {{ centroCosto(pedido) }}
+                </p>
+              }
+            </td>
+
+            <td class="px-6 py-4">
+              <span
+                class="rounded-full border px-3 py-1 text-xs font-black"
+                [class]="clasePrioridad(prioridadPedido(pedido))"
+              >
+                {{ prioridadPedido(pedido) }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4">
+              <span
+                class="rounded-full border px-3 py-1 text-xs font-black"
+                [class]="claseEstado(estadoPedido(pedido))"
+              >
+                {{ estadoPedido(pedido) }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4">
+              <span
+                class="rounded-full border px-3 py-1 text-xs font-black"
+                [class]="claseEstado(estadoAprobacion(pedido))"
+              >
+                {{ estadoAprobacion(pedido) }}
+              </span>
+            </td>
+
+            <td class="lp-actions-cell px-6 py-4">
+              <div class="lp-actions" tabindex="0">
+                <button
+                  type="button"
+                  class="lp-actions-trigger"
+                  aria-haspopup="menu"
+                  aria-label="Acciones del pedido"
+                >
+                  &#8942;
+                </button>
+
+                <div class="lp-actions-menu" role="menu">
+                  @if (tienePermiso('pedidos.detalle')) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirVer(pedido)"
+                      class="lp-actions-item lp-action-view"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">&#128065;</span>
+                      <span>Ver detalle</span>
+                    </button>
+                  }
+
+                  @if (puedeEditar(pedido)) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirEditar(pedido)"
+                      class="lp-actions-item lp-action-edit"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">&#9998;</span>
+                      <span>Editar</span>
+                    </button>
+                  }
+
+                  @if (puedeEnviarDespacho(pedido)) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirEnviarDespacho(pedido)"
+                      class="lp-actions-item lp-action-edit"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">&#128666;</span>
+                      <span>Enviar a despacho</span>
+                    </button>
+                  }
+
+                  @if (puedeAprobarRechazar(pedido)) {
+                    @if (puedeObservar(pedido)) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirObservar(pedido)"
+                        class="lp-actions-item lp-action-warning"
+                      >
+                        <span class="lp-actions-icon" aria-hidden="true">&#128221;</span>
+                        <span>Observar</span>
+                      </button>
+                    }
+
+                    @if (tienePermiso('pedidos.aprobar')) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirAprobar(pedido)"
+                        class="lp-actions-item lp-action-success"
+                      >
+                        <span class="lp-actions-icon" aria-hidden="true">&#10003;</span>
+                        <span>Aprobar</span>
+                      </button>
+                    }
+
+                    @if (tienePermiso('pedidos.rechazar')) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirRechazar(pedido)"
+                        class="lp-actions-item lp-action-warning"
+                      >
+                        <span class="lp-actions-icon" aria-hidden="true">&#10005;</span>
+                        <span>Rechazar</span>
+                      </button>
+                    }
+                  }
+
+                  @if (puedeAnular(pedido)) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirAnular(pedido)"
+                      class="lp-actions-item lp-action-danger"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">&#9888;</span>
+                      <span>Anular</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+              No se encontraron pedidos.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+    <div class="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-5">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">
+            @if (modoModal() === 'nuevo') {
+              Nuevo pedido
+            } @else if (modoModal() === 'editar') {
+              Editar pedido
+            } @else if (modoModal() === 'ver') {
+              Detalle del pedido
+            } @else if (modoModal() === 'aprobar') {
+              Aprobar pedido
+            } @else if (modoModal() === 'rechazar') {
+              Rechazar pedido
+            } @else if (modoModal() === 'observar') {
+              Observar pedido
+            } @else if (modoModal() === 'despacho') {
+              Enviar a despacho
+            } @else if (modoModal() === 'anular') {
+              Anular pedido
+            } @else {
+              Pedido
+            }
+          </h3>
+          <p class="mt-1 text-sm text-slate-500">
+            Gestión de solicitud de insumos.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+        >
+          ✕
+        </button>
+      </div>
+
+      @if (error() && modalAbierto()) {
+        <div class="mx-6 mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+          {{ error() }}
+        </div>
+      }
+
+      @if (modoModal() === 'nuevo' || modoModal() === 'editar') {
+        <form [formGroup]="form" (ngSubmit)="guardarPedido()" autocomplete="off" class="p-6">
+          @if (modoModal() === 'nuevo') {
+            <section class="mb-7 rounded-3xl border border-blue-100 bg-blue-50/70 p-5">
+              <div class="mb-4">
+                <h4 class="text-lg font-black text-slate-950">Datos del solicitante</h4>
+                <p class="text-sm text-slate-500">Información tomada de la sesión activa.</p>
+              </div>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="rounded-2xl border border-blue-100 bg-white px-4 py-3">
+                  <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Solicitante</p>
+                  <p class="mt-1 font-black text-slate-900">{{ solicitanteActual() }}</p>
+                </div>
+                <div class="rounded-2xl border border-blue-100 bg-white px-4 py-3">
+                  <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Área solicitante</p>
+                  <p class="mt-1 font-black text-slate-900">{{ areaActual() }}</p>
+                </div>
+              </div>
+            </section>
+          }
+
+          <div class="mb-4">
+            <h4 class="text-lg font-black text-slate-950">Datos del pedido</h4>
+            <p class="text-sm text-slate-500">Describa dónde, cuándo y por qué se necesitan los insumos.</p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Prioridad *</label>
+              <select formControlName="prioridad" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100">
+                <option value="">Seleccione prioridad</option>
+                @for (prioridad of prioridades; track prioridad) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="prioridad">{{ prioridad }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Fecha requerida *</label>
+              <input type="date" formControlName="fechaRequerida" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Hora requerida *</label>
+              <input type="time" formControlName="horaRequerida" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" />
+            </div>
+
+            @if (modoModal() === 'editar') {
+              <div>
+                <label class="mb-2 block text-sm font-bold text-slate-700">Centro de costo / destino</label>
+                <input type="text" formControlName="centroCosto" maxlength="80" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" placeholder="Ej. CC-MINA-001" />
+              </div>
+            }
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Lugar de uso</label>
+              <input type="text" formControlName="lugarUso" maxlength="120" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" placeholder="Ej. Planta, taller o frente de trabajo" />
+            </div>
+
+            @if (modoModal() === 'editar') {
+              <div>
+                <label class="mb-2 block text-sm font-bold text-slate-700">Turno / guardia</label>
+                <input type="text" formControlName="turnoGuardia" maxlength="80" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100" placeholder="Ej. Guardia día" />
+              </div>
+            }
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Motivo solicitud *</label>
+              <select formControlName="motivoSolicitud" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100">
+                <option value="">Seleccione motivo</option>
+                @for (motivo of motivosPedido; track motivo) {
+                  <option [value]="motivo">{{ motivo }}</option>
+                }
+              </select>
+            </div>
+
+            @if (modoModal() === 'editar') {
+              <div class="md:col-span-2">
+                <label class="mb-2 block text-sm font-bold text-slate-700">Observaciones generales</label>
+                <textarea formControlName="observaciones" rows="2" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"></textarea>
+              </div>
+            }
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-800">
+            El almacén de salida será definido por el encargado de almacén al generar el despacho.
+          </div>
+
+          @if (modoModal() === 'nuevo') {
+            <div class="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <h4 class="text-lg font-black text-slate-950">Detalle de insumos</h4>
+                  <p class="text-sm text-slate-500">Agregue los insumos solicitados.</p>
+                </div>
+
+                <button
+                  type="button"
+                  (click)="agregarDetalle()"
+                  class="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800"
+                >
+                  + Agregar
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                @for (detalle of detallesFormulario(); track $index) {
+                  <div class="grid grid-cols-1 gap-3 rounded-2xl bg-white p-4 md:grid-cols-5">
+                    <div>
+                    <select
+                      [value]="detalle.idInsumo"
+                      (change)="cambiarDetalle($index, 'idInsumo', $event)"
+                      [class.campo-formulario-invalido]="detallePedidoInsumoInvalido($index)"
+                      class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                    >
+                      <option value="">Seleccione insumo</option>
+                      @for (insumo of insumos(); track insumo.idInsumo) {
+                        <option class="bg-white text-slate-900 font-bold" [value]="insumo.idInsumo">
+                          {{ insumo.codigoInterno }} · {{ insumo.nombreInsumo }}
+                        </option>
+                      }
+                    </select>
+                    @if (detallePedidoInsumoInvalido($index)) {
+                      <p class="campo-error">Seleccione un insumo.</p>
+                    }
+                    </div>
+
+                    <div>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      [value]="detalle.cantidadSolicitada"
+                      (input)="cambiarDetalle($index, 'cantidadSolicitada', $event)"
+                      [class.campo-formulario-invalido]="detallePedidoCantidadInvalida($index)"
+                      class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                      placeholder="Cantidad"
+                    />
+                    @if (detallePedidoCantidadInvalida($index)) {
+                      <p class="campo-error">Ingrese una cantidad mayor a cero.</p>
+                    }
+                    </div>
+
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700">
+                      {{ unidadInsumoFormulario(detalle.idInsumo) }}
+                    </div>
+
+                    <input
+                      type="text"
+                      [value]="detalle.observaciones"
+                      (input)="cambiarDetalle($index, 'observaciones', $event)"
+                      class="modal-form-control rounded-2xl px-4 py-3 text-sm font-bold outline-none"
+                      placeholder="Observación"
+                    />
+
+                    <button
+                      type="button"
+                      (click)="quitarDetalle($index)"
+                      class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 hover:bg-red-100"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">
+              Cancelar
+            </button>
+
+            <button type="submit" [disabled]="guardando()" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-60">
+              @if (guardando()) {
+                Guardando...
+              } @else if (modoModal() === 'nuevo') {
+                Crear pedido
+              } @else {
+                Guardar cambios
+              }
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'ver') {
+        @if (pedidoSeleccionado(); as pedido) {
+          <div class="p-6">
+            <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Número</p>
+                <p class="mt-1 font-black text-slate-900">{{ numeroPedido(pedido) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Solicitante</p>
+                <p class="mt-1 font-black text-slate-900">{{ usuarioSolicitante(pedido) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Área</p>
+                <p class="mt-1 font-black text-slate-900">{{ areaSolicitante(pedido) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha pedido</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaPedido(pedido)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha requerida</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaRequeridaFormateada(fechaRequerida(pedido)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Hora requerida</p>
+                <p class="mt-1 font-black text-slate-900">{{ horaRequeridaFormateada(fechaRequerida(pedido)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Prioridad</p>
+                <p class="mt-1 font-black text-blue-700">{{ prioridadPedido(pedido) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Lugar de uso</p>
+                <p class="mt-1 font-black text-slate-900">{{ lugarUso(pedido) || 'Sin especificar' }}</p>
+              </div>
+            </div>
+
+            <div class="mb-6 rounded-2xl border border-slate-200 p-5">
+              <p class="text-xs font-bold uppercase text-slate-400">Motivo solicitud</p>
+              <p class="mt-2 font-semibold text-slate-700">{{ motivoSolicitud(pedido) || 'Sin motivo' }}</p>
+            </div>
+
+            <section
+              class="revision-administrativa mb-6"
+              [class.revision-administrativa--aprobado]="estadoRevisionPedido(pedido) === 'APROBADO'"
+              [class.revision-administrativa--rechazado]="estadoRevisionPedido(pedido) === 'RECHAZADO'"
+              [class.revision-administrativa--observado]="estadoRevisionPedido(pedido) === 'OBSERVADO'"
+              [class.revision-administrativa--pendiente]="estadoRevisionPedido(pedido) === 'PENDIENTE'"
+            >
+              <div class="revision-administrativa__encabezado">
+                <div>
+                  <p class="revision-administrativa__eyebrow">Revisión administrativa</p>
+                  <h4 class="revision-administrativa__titulo">
+                    Resultado de la revisión del pedido
+                  </h4>
+                </div>
+                <span class="revision-administrativa__estado">
+                  {{ estadoRevisionPedido(pedido) }}
+                </span>
+              </div>
+
+              <div class="revision-administrativa__datos">
+                <div class="revision-administrativa__dato">
+                  <p class="revision-administrativa__etiqueta">Estado revisión</p>
+                  <p class="revision-administrativa__valor">
+                    {{ estadoRevisionPedido(pedido) }}
+                  </p>
+                </div>
+
+                <div class="revision-administrativa__dato">
+                  <p class="revision-administrativa__etiqueta">
+                    {{ tituloRevisionPedido(pedido) }}
+                  </p>
+                  <p class="revision-administrativa__valor">
+                    {{ usuarioRevisionPedido(pedido) }}
+                  </p>
+                </div>
+
+                <div class="revision-administrativa__dato">
+                  <p class="revision-administrativa__etiqueta">
+                    @switch (estadoRevisionPedido(pedido)) {
+                      @case ('APROBADO') { Fecha de aprobación }
+                      @case ('RECHAZADO') { Fecha de rechazo }
+                      @case ('OBSERVADO') { Fecha de observación }
+                      @default { Fecha revisión }
+                    }
+                  </p>
+                  <p class="revision-administrativa__valor">
+                    {{ fechaRevisionPedido(pedido) }}
+                  </p>
+                </div>
+              </div>
+
+              @if (estadoRevisionPedido(pedido) === 'PENDIENTE') {
+                <div class="revision-administrativa__motivo">
+                  <p class="revision-administrativa__etiqueta">Mensaje</p>
+                  <p class="revision-administrativa__texto">
+                    {{ motivoRevisionPedido(pedido) }}
+                  </p>
+                </div>
+              } @else if (motivoRevisionPedido(pedido)) {
+                <div class="revision-administrativa__motivo">
+                  <p class="revision-administrativa__etiqueta">
+                    @switch (estadoRevisionPedido(pedido)) {
+                      @case ('APROBADO') { Observaciones de aprobación }
+                      @case ('RECHAZADO') { Motivo de rechazo }
+                      @case ('OBSERVADO') { Motivo de observación }
+                    }
+                  </p>
+                  <p class="revision-administrativa__texto">
+                    {{ motivoRevisionPedido(pedido) }}
+                  </p>
+                </div>
+              }
+            </section>
+
+            <div class="rounded-3xl border border-slate-200 bg-white">
+              <div class="border-b border-slate-200 p-5">
+                <h4 class="text-lg font-black text-slate-950">Detalle de insumos solicitados</h4>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+                      <th class="px-5 py-3">Código</th>
+                      <th class="px-5 py-3">Insumo</th>
+                      <th class="px-5 py-3">Cantidad</th>
+                      <th class="px-5 py-3">Unidad</th>
+                      <th class="px-5 py-3">Observación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (detalle of detallesPedido(pedido); track detalle.idPedidoDetalle || detalle.id_pedido_detalle || $index) {
+                      <tr class="border-b border-slate-100">
+                        <td class="px-5 py-3 font-bold text-slate-900">{{ detalleCodigo(detalle) }}</td>
+                        <td class="px-5 py-3 text-slate-700">{{ detalleInsumo(detalle) }}</td>
+                        <td class="px-5 py-3 font-black text-blue-700">{{ detalleCantidad(detalle) }}</td>
+                        <td class="px-5 py-3 font-bold text-slate-600">{{ detalleUnidad(detalle) }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ detalle.observaciones || detalle.observacion || 'Sin observación' }}</td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="5" class="px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                          Este pedido no tiene detalles cargados.
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+              <button type="button" (click)="cerrarModal()" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'aprobar') {
+        <div class="p-6">
+          <div class="rounded-2xl bg-green-50 p-5 text-green-800">
+            <p class="font-black">¿Desea aprobar este pedido?</p>
+            <p class="mt-1 text-sm">Pedido: {{ pedidoSeleccionado() ? numeroPedido(pedidoSeleccionado()!) : '' }}</p>
+          </div>
+
+          <div class="mt-5">
+            <label class="mb-2 block text-sm font-bold text-slate-700">Observaciones</label>
+            <textarea [formControl]="formAccion.controls.observaciones" rows="3" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none"></textarea>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">Cancelar</button>
+            <button type="button" (click)="confirmarAprobar()" class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white">Aprobar pedido</button>
+          </div>
+        </div>
+      }
+
+      @if (modoModal() === 'rechazar') {
+        <div class="p-6">
+          <div class="rounded-2xl bg-orange-50 p-5 text-orange-800">
+            <p class="font-black">¿Desea rechazar este pedido?</p>
+            <p class="mt-1 text-sm">Debe ingresar el motivo del rechazo.</p>
+          </div>
+
+          <div class="mt-5">
+            <label class="mb-2 block text-sm font-bold text-slate-700">Motivo rechazo *</label>
+            <textarea [formControl]="formAccion.controls.motivoRechazo" rows="3" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none"></textarea>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">Cancelar</button>
+            <button type="button" (click)="confirmarRechazar()" class="rounded-2xl bg-orange-600 px-5 py-3 text-sm font-black text-white">Rechazar pedido</button>
+          </div>
+        </div>
+      }
+
+      @if (modoModal() === 'observar') {
+        <div class="p-6">
+          <div class="rounded-2xl border border-violet-200 bg-violet-50 p-5 text-violet-800">
+            <p class="font-black">Observar pedido pendiente</p>
+            <p class="mt-1 text-sm">El solicitante podrá corregirlo antes de una nueva revisión.</p>
+          </div>
+
+          <div class="mt-5">
+            <label class="mb-2 block text-sm font-bold text-slate-700">Motivo de observación *</label>
+            <textarea [formControl]="formAccion.controls.motivoRechazo" rows="3" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none"></textarea>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">Cancelar</button>
+            <button type="button" (click)="confirmarObservar()" [disabled]="guardando()" class="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white disabled:opacity-60">Confirmar observación</button>
+          </div>
+        </div>
+      }
+
+      @if (modoModal() === 'despacho') {
+        <div class="p-6">
+          <div class="rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-cyan-800">
+            <p class="font-black">Enviar pedido a preparación de despacho</p>
+            <p class="mt-1 text-sm">El almacén de salida se seleccionará en Inventario y Despachos.</p>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">Cancelar</button>
+            <button type="button" (click)="confirmarEnviarDespacho()" [disabled]="guardando()" class="rounded-2xl bg-cyan-600 px-5 py-3 text-sm font-black text-white disabled:opacity-60">Enviar a despacho</button>
+          </div>
+        </div>
+      }
+
+      @if (modoModal() === 'anular') {
+        <div class="p-6">
+          <div class="rounded-2xl bg-red-50 p-5 text-red-800">
+            <p class="font-black">Desea anular este pedido?</p>
+            <p class="mt-1 text-sm">El registro se conservara y el pedido pasara a estado CANCELADO.</p>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">Cancelar</button>
+            <button type="button" (click)="confirmarAnular()" class="rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white">Anular pedido</button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

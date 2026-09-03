@@ -1,0 +1,88 @@
+:host select,
+:host input {
+  color: #0f172a;
+  color-scheme: light;
+}
+
+:host select option {
+  color: #0f172a;
+  background-color: #ffffff;
+  font-weight: 700;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-width: thin;
+}
+
+pre::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 999px;
+}
+
+pre::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+
+/* ======================================================
+   AUDITORIA DETALLE PROFESIONAL
+   ====================================================== */
+
+.auditoria-registro-tabla {
+  display: grid;
+  gap: 10px;
+  border-radius: 18px;
+}
+
+.auditoria-registro-fila {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px;
+  align-items: center;
+  border: 2px solid #1e293b;
+  border-radius: 14px;
+  background: #0f172a;
+  padding: 12px 14px;
+}
+
+.auditoria-registro-campo {
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auditoria-registro-valor {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: right;
+  word-break: break-word;
+}
+
+.auditoria-registro-vacio {
+  border: 2px dashed #334155;
+  border-radius: 16px;
+  padding: 18px;
+  color: #cbd5e1;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .auditoria-registro-fila {
+    grid-template-columns: 1fr;
+  }
+
+  .auditoria-registro-valor {
+    text-align: left;
+  }
+}

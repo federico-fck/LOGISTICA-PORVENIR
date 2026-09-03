@@ -1,0 +1,1147 @@
+<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Compras y Comprobantes</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Seguimiento de órdenes de compra, recepciones y comprobantes.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row">
+    @if (tienePermiso('compras.crear_orden')) {
+      <button
+        type="button"
+        (click)="abrirNuevaOrden()"
+        class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+      >
+        + Nueva orden
+      </button>
+    }
+
+    @if (tienePermiso('recepciones.crear')) {
+      <button
+        type="button"
+        (click)="abrirNuevaRecepcion()"
+      class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700"
+    >
+      + Registrar recepción
+      </button>
+    }
+
+    @if (tienePermiso('comprobantes.crear')) {
+      <button
+        type="button"
+        (click)="abrirNuevoComprobante()"
+      class="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-violet-600/20 transition hover:bg-violet-700"
+    >
+      + Registrar comprobante
+      </button>
+    }
+
+    <button
+      type="button"
+      (click)="cargarDatos()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Actualizar
+    </button>
+  </div>
+</div>
+
+@if (error() && !modalAbierto()) {
+  <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+    {{ error() }}
+  </div>
+}
+
+<div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">🧾</div>
+    <p class="text-sm font-semibold text-slate-500">Órdenes compra</p>
+    <h3 class="mt-2 text-4xl font-black text-slate-950">{{ totalOrdenes() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">📥</div>
+    <p class="text-sm font-semibold text-slate-500">Recepciones</p>
+    <h3 class="mt-2 text-4xl font-black text-green-600">{{ totalRecepciones() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-2xl">📄</div>
+    <p class="text-sm font-semibold text-slate-500">Comprobantes</p>
+    <h3 class="mt-2 text-4xl font-black text-violet-600">{{ totalComprobantes() }}</h3>
+  </div>
+
+</div>
+
+<div class="mb-6 rounded-3xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
+  <p class="text-sm font-semibold text-slate-400">Monto total comprobantes</p>
+  <h3 class="mt-2 text-4xl font-black">Bs {{ montoTotalComprobantes() }}</h3>
+</div>
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 p-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap gap-2">
+        @if (puedeVerTab('ordenes')) {
+          <button type="button" (click)="cambiarTab('ordenes')" class="rounded-2xl px-4 py-2 text-sm font-black transition" [class]="tabActual() === 'ordenes' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+          Órdenes
+          </button>
+        }
+
+        @if (puedeVerTab('recepciones')) {
+          <button type="button" (click)="cambiarTab('recepciones')" class="rounded-2xl px-4 py-2 text-sm font-black transition" [class]="tabActual() === 'recepciones' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+          Recepciones
+          </button>
+        }
+
+        @if (puedeVerTab('comprobantes')) {
+          <button type="button" (click)="cambiarTab('comprobantes')" class="rounded-2xl px-4 py-2 text-sm font-black transition" [class]="tabActual() === 'comprobantes' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+          Comprobantes
+          </button>
+        }
+
+      </div>
+
+      <div class="relative w-full lg:w-96">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+        <input
+          type="text"
+          [value]="busqueda()"
+          (input)="cambiarBusqueda($event)"
+          class="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+          placeholder="Buscar en el módulo actual..."
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="border-b border-slate-200 bg-slate-50/70 p-4">
+    @if (tabActual() === 'ordenes') {
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <label class="filter-field">Fecha rápida
+          <select [value]="fechaRapidaOrdenes()" (change)="fechaRapidaOrdenes.set($any($event.target).value)" class="filter-control">
+            @for (opcion of opcionesFechaRapida; track opcion.valor) {
+              <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+            }
+          </select>
+        </label>
+        <label class="filter-field">Desde
+          <input type="date" [value]="fechaDesdeOrdenes()" (input)="fechaDesdeOrdenes.set($any($event.target).value)" class="filter-control" />
+        </label>
+        <label class="filter-field">Hasta
+          <input type="date" [value]="fechaHastaOrdenes()" (input)="fechaHastaOrdenes.set($any($event.target).value)" class="filter-control" />
+        </label>
+        <label class="filter-field">Estado
+          <select [value]="estadoFiltroOrdenes()" (change)="estadoFiltroOrdenes.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (estado of estadosOrden; track estado) { <option [value]="estado">{{ estado }}</option> }
+          </select>
+        </label>
+        <label class="filter-field">Proveedor
+          <select [value]="proveedorFiltroOrdenes()" (change)="proveedorFiltroOrdenes.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (proveedor of proveedores(); track proveedor.idProveedor) {
+              <option [value]="proveedor.idProveedor">{{ proveedorTexto(proveedor) }}</option>
+            }
+          </select>
+        </label>
+        <label class="filter-field">Pedido
+          <select [value]="pedidoFiltroOrdenes()" (change)="pedidoFiltroOrdenes.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (pedido of pedidos(); track pedido.idPedido || pedido.id_pedido) {
+              <option [value]="pedido.idPedido || pedido.id_pedido">{{ pedidoTexto(pedido) }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+
+    @if (tabActual() === 'recepciones') {
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <label class="filter-field">Fecha rápida
+          <select [value]="fechaRapidaRecepciones()" (change)="fechaRapidaRecepciones.set($any($event.target).value)" class="filter-control">
+            @for (opcion of opcionesFechaRapida; track opcion.valor) {
+              <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+            }
+          </select>
+        </label>
+        <label class="filter-field">Desde
+          <input type="date" [value]="fechaDesdeRecepciones()" (input)="fechaDesdeRecepciones.set($any($event.target).value)" class="filter-control" />
+        </label>
+        <label class="filter-field">Hasta
+          <input type="date" [value]="fechaHastaRecepciones()" (input)="fechaHastaRecepciones.set($any($event.target).value)" class="filter-control" />
+        </label>
+        <label class="filter-field">Estado
+          <select [value]="estadoFiltroRecepciones()" (change)="estadoFiltroRecepciones.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (estado of estadosRecepcion; track estado) { <option [value]="estado">{{ estado }}</option> }
+          </select>
+        </label>
+        <label class="filter-field">Proveedor
+          <select [value]="proveedorFiltroRecepciones()" (change)="proveedorFiltroRecepciones.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (proveedor of proveedores(); track proveedor.idProveedor) {
+              <option [value]="proveedor.idProveedor">{{ proveedorTexto(proveedor) }}</option>
+            }
+          </select>
+        </label>
+        <label class="filter-field">Orden de compra
+          <select [value]="ordenFiltroRecepciones()" (change)="ordenFiltroRecepciones.set($any($event.target).value)" class="filter-control">
+            <option value="">Todas</option>
+            @for (orden of ordenes(); track idOrden(orden)) {
+              <option [value]="idOrden(orden)">{{ numeroOrden(orden) }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+
+    @if (tabActual() === 'comprobantes') {
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <label class="filter-field">Fecha rápida
+          <select [value]="fechaRapidaComprobantes()" (change)="fechaRapidaComprobantes.set($any($event.target).value)" class="filter-control">
+            @for (opcion of opcionesFechaRapida; track opcion.valor) {
+              <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+            }
+          </select>
+        </label>
+        <label class="filter-field">Desde
+          <input type="date" [value]="fechaDesdeComprobantes()" (input)="fechaDesdeComprobantes.set($any($event.target).value)" class="filter-control" />
+        </label>
+        <label class="filter-field">Hasta
+          <input type="date" [value]="fechaHastaComprobantes()" (input)="fechaHastaComprobantes.set($any($event.target).value)" class="filter-control" />
+        </label>
+        <label class="filter-field">Tipo
+          <select [value]="tipoFiltroComprobantes()" (change)="tipoFiltroComprobantes.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (tipo of tiposComprobante; track tipo.valor) { <option [value]="tipo.valor">{{ tipo.etiqueta }}</option> }
+          </select>
+        </label>
+        <label class="filter-field">Estado
+          <select [value]="estadoFiltroComprobantes()" (change)="estadoFiltroComprobantes.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (estado of estadosComprobante; track estado) { <option [value]="estado">{{ estado }}</option> }
+          </select>
+        </label>
+        <label class="filter-field">Proveedor
+          <select [value]="proveedorFiltroComprobantes()" (change)="proveedorFiltroComprobantes.set($any($event.target).value)" class="filter-control">
+            <option value="">Todos</option>
+            @for (proveedor of proveedores(); track proveedor.idProveedor) {
+              <option [value]="proveedor.idProveedor">{{ proveedorTexto(proveedor) }}</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+
+    <div class="mt-3 flex justify-end">
+      <button type="button" (click)="limpiarFiltros()" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-100">
+        Limpiar filtros
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+      Cargando información...
+    </div>
+  }
+
+  @if (tabActual() === 'ordenes') {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+            <th class="px-6 py-4">Orden</th>
+            <th class="px-6 py-4">Proveedor</th>
+            <th class="px-6 py-4">Fecha</th>
+            <th class="px-6 py-4">Total</th>
+            <th class="px-6 py-4">Estado</th>
+            <th class="px-6 py-4 text-right">Detalle</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of ordenesFiltradas(); track idOrden(item)) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4 font-black text-slate-950">{{ numeroOrden(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ proveedorOrden(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ fechaFormateada(fechaOrden(item)) }}</td>
+              <td class="px-6 py-4 font-black text-blue-700">{{ monedaOrden(item) }} {{ totalOrden(item) }}</td>
+              <td class="px-6 py-4">
+                <span class="rounded-full border px-3 py-1 text-xs font-black" [class]="claseEstado(estadoOrden(item))">
+                  {{ estadoOrden(item) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                @if (tienePermiso('compras.detalle_orden')) {
+                  <button type="button" (click)="abrirOrden(item)" class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 hover:bg-blue-100">
+                    Ver detalle
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No se encontraron órdenes de compra.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tabActual() === 'recepciones') {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+            <th class="px-6 py-4">Recepción</th>
+            <th class="px-6 py-4">Orden</th>
+            <th class="px-6 py-4">Responsable</th>
+            <th class="px-6 py-4">Fecha</th>
+            <th class="px-6 py-4">Estado</th>
+            <th class="px-6 py-4 text-right">Detalle</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of recepcionesFiltradas(); track idRecepcion(item)) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4 font-black text-slate-950">{{ numeroRecepcion(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ numeroOrdenRecepcion(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ responsableRecepcion(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ fechaFormateada(fechaRecepcion(item)) }}</td>
+              <td class="px-6 py-4">
+                <span class="rounded-full border px-3 py-1 text-xs font-black" [class]="claseEstado(estadoRecepcion(item))">
+                  {{ estadoRecepcion(item) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                @if (tienePermiso('recepciones.detalle')) {
+                  <button type="button" (click)="abrirRecepcion(item)" class="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-black text-green-700 hover:bg-green-100">
+                    Ver detalle
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No se encontraron recepciones.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tabActual() === 'comprobantes') {
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+            <th class="px-6 py-4">Comprobante</th>
+            <th class="px-6 py-4">Tipo</th>
+            <th class="px-6 py-4">Proveedor</th>
+            <th class="px-6 py-4">Orden</th>
+            <th class="px-6 py-4">Monto</th>
+            <th class="px-6 py-4">Estado</th>
+            <th class="px-6 py-4 text-right">Detalle</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (item of comprobantesFiltrados(); track idComprobante(item)) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4">
+                <p class="font-black text-slate-950">{{ numeroComprobante(item) }}</p>
+                <p class="text-xs text-slate-500">{{ fechaFormateada(fechaComprobante(item)) }}</p>
+              </td>
+              <td class="px-6 py-4 text-slate-600">{{ etiquetaTipoComprobante(tipoComprobante(item)) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ proveedorComprobante(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ numeroOrdenComprobante(item) }}</td>
+              <td class="px-6 py-4 font-black text-violet-700">{{ monedaComprobante(item) }} {{ montoComprobante(item) }}</td>
+              <td class="px-6 py-4">
+                <span class="rounded-full border px-3 py-1 text-xs font-black" [class]="claseEstado(estadoComprobante(item))">
+                  {{ estadoComprobante(item) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                @if (tienePermiso('comprobantes.detalle')) {
+                  <button type="button" (click)="abrirComprobante(item)" class="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-black text-violet-700 hover:bg-violet-100">
+                    Ver detalle
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No se encontraron comprobantes.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
+
+@if (modalAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+    <div class="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-5">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">
+            @if (modoModal() === 'nueva-orden') {
+              Nueva orden de compra
+            } @else if (modoModal() === 'nueva-recepcion') {
+              Registrar recepción
+            } @else if (modoModal() === 'nuevo-comprobante') {
+              Registrar comprobante
+            } @else {
+              Detalle
+            }
+          </h3>
+          <p class="mt-1 text-sm text-slate-500">
+            Información de compras, recepciones y comprobantes.
+          </p>
+        </div>
+
+        <button type="button" (click)="cerrarModal()" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100">
+          ✕
+        </button>
+      </div>
+
+      @if (error() && modalAbierto()) {
+        <div class="mx-6 mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+          {{ error() }}
+        </div>
+      }
+
+      @if (modoModal() === 'nueva-orden') {
+        <form [formGroup]="formOrden" (ngSubmit)="guardarOrdenCompra()" autocomplete="off" class="p-6">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Pedido *</label>
+              <select formControlName="idPedido" (change)="cambiarPedidoOrden($event)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="">Seleccione pedido</option>
+                @for (pedido of pedidosEnCompra(); track pedido.idPedido || pedido.id_pedido) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="pedido.idPedido || pedido.id_pedido">
+                    {{ pedidoTexto(pedido) }} · EN_COMPRA
+                  </option>
+                }
+              </select>
+              @if (pedidosEnCompra().length === 0) {
+                <p class="mt-2 text-xs font-semibold text-slate-500">No hay pedidos EN_COMPRA pendientes de orden.</p>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Proveedor *</label>
+              <select formControlName="idProveedor" (change)="cambiarProveedorOrden($event)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="">Seleccione proveedor</option>
+                @for (proveedor of proveedores(); track proveedor.idProveedor) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="proveedor.idProveedor">
+                    {{ proveedorTexto(proveedor) }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            @if (pedidoOrdenSeleccionado(); as pedido) {
+              <section class="md:col-span-2 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                <h4 class="mb-3 text-sm font-black text-blue-950">Datos del pedido aprobado</h4>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <div><p class="text-xs font-bold uppercase text-blue-500">Pedido</p><p class="mt-1 font-black text-slate-900">{{ pedidoTexto(pedido) }}</p></div>
+                  <div><p class="text-xs font-bold uppercase text-blue-500">Estado</p><p class="mt-1 font-black text-slate-900">{{ estadoPedido(pedido) }}</p></div>
+                  <div><p class="text-xs font-bold uppercase text-blue-500">Solicitante</p><p class="mt-1 font-black text-slate-900">{{ solicitantePedido(pedido) }}</p></div>
+                  <div><p class="text-xs font-bold uppercase text-blue-500">Área solicitante</p><p class="mt-1 font-black text-slate-900">{{ areaPedido(pedido) }}</p></div>
+                  <div><p class="text-xs font-bold uppercase text-blue-500">Aprobado por</p><p class="mt-1 font-black text-slate-900">{{ aprobadorPedido(pedido) }}</p></div>
+                  <div><p class="text-xs font-bold uppercase text-blue-500">Fecha aprobación</p><p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaAprobacionPedido(pedido)) }}</p></div>
+                </div>
+              </section>
+            }
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Fecha entrega estimada</label>
+              <input type="datetime-local" formControlName="fechaEntregaEstimada" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Condición de pago</label>
+              <select formControlName="condicionPago" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="CONTADO">Contado</option>
+                <option value="CREDITO_15_DIAS">Crédito 15 días</option>
+                <option value="CREDITO_30_DIAS">Crédito 30 días</option>
+                <option value="CREDITO_60_DIAS">Crédito 60 días</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Forma de pago</label>
+              <select formControlName="formaPago" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="TRANSFERENCIA">Transferencia bancaria</option>
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="CHEQUE">Cheque</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Moneda</label>
+              <select formControlName="moneda" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="BOB">Bolivianos (BOB)</option>
+                <option value="USD">Dólares (USD)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Descuento (BOB)</label>
+              <input type="number" min="0" step="0.01" formControlName="descuento" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Comentario de la orden / Notas de entrega</label>
+              <textarea formControlName="observaciones" rows="2" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="Ej. Entregar solo en horario de la mañana, facturar a nombre de la sucursal de Oruro o coordinar ingreso con seguridad."></textarea>
+            </div>
+          </div>
+
+          <div class="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <h4 class="text-lg font-black text-slate-950">Detalle de compra</h4>
+                <p class="text-sm text-slate-500">Agregue insumos, cantidades y precios.</p>
+              </div>
+
+              <button type="button" (click)="agregarDetalleOrden()" class="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800">
+                + Agregar
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              @for (detalle of detallesOrden(); track $index) {
+                <div class="grid grid-cols-1 gap-3 rounded-2xl bg-white p-4 md:grid-cols-6">
+                  <div class="md:col-span-2">
+                  <select [value]="detalle.idInsumo" (change)="cambiarDetalleOrden($index, 'idInsumo', $event)" [class.campo-formulario-invalido]="detalleOrdenInsumoInvalido($index)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                    <option value="">Seleccione insumo</option>
+                    @for (insumo of insumos(); track insumo.idInsumo) {
+                      <option class="bg-white text-slate-900 font-bold" [value]="insumo.idInsumo">
+                        {{ insumoTexto(insumo) }}
+                      </option>
+                    }
+                  </select>
+                  @if (detalleOrdenInsumoInvalido($index)) {
+                    <p class="campo-error">Seleccione un insumo.</p>
+                  }
+                  </div>
+
+                  <label class="text-xs font-bold text-slate-500">
+                    Cantidad
+                    <input type="number" min="0.01" step="0.01" [value]="detalle.cantidad" (input)="cambiarDetalleOrden($index, 'cantidad', $event)" [class.campo-formulario-invalido]="detalleOrdenCantidadInvalida($index)" class="modal-form-control mt-1 w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="0" />
+                    @if (detalleOrdenCantidadInvalida($index)) {
+                      <p class="campo-error">Ingrese una cantidad mayor a cero.</p>
+                    }
+                  </label>
+
+                  <label class="text-xs font-bold text-slate-500" [class.campo-formulario-invalido]="detalleOrdenPrecioInvalido($index)">
+                    Precio unitario
+                    <input type="number" min="0.01" step="0.01" [value]="detalle.precioUnitario" (input)="cambiarDetalleOrden($index, 'precioUnitario', $event)" class="modal-form-control mt-1 w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="Automático" />
+                    @if (detalleOrdenPrecioInvalido($index)) {
+                      <p class="campo-error">Ingrese un precio mayor a cero.</p>
+                    }
+                  </label>
+
+                  <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
+                    <p class="text-xs font-bold text-blue-500">Subtotal</p>
+                    <p class="mt-1 font-black text-blue-800">
+                      {{ formOrden.controls.moneda.value }}
+                      {{ (+detalle.cantidad || 0) * (+detalle.precioUnitario || 0) }}
+                    </p>
+                  </div>
+
+                  <button type="button" (click)="quitarDetalleOrden($index)" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 hover:bg-red-100">
+                    Quitar
+                  </button>
+
+                  <input type="text" [value]="detalle.observaciones" (input)="cambiarDetalleOrden($index, 'observaciones', $event)" class="modal-form-control rounded-2xl px-4 py-3 text-sm font-bold outline-none md:col-span-6" placeholder="Especificaciones u observaciones del insumo" />
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-1 gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 sm:grid-cols-3">
+            <div>
+              <p class="text-xs font-bold uppercase text-blue-500">Subtotal</p>
+              <p class="mt-1 font-black text-blue-950">{{ formOrden.controls.moneda.value }} {{ subtotalOrdenFormulario() }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-blue-500">Descuento (BOB)</p>
+              <p class="mt-1 font-black text-blue-950">
+                - {{ formOrden.controls.descuento.value || 0 }} BOB
+              </p>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-blue-500">Total Neto / Total de la Orden</p>
+              <p class="mt-1 text-lg font-black text-blue-800">{{ formOrden.controls.moneda.value }} {{ totalOrdenFormulario() }}</p>
+            </div>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button>
+            <button type="submit" [disabled]="guardando()" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60">
+              @if (guardando()) { Guardando... } @else { Crear orden }
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'nueva-recepcion') {
+        <form [formGroup]="formRecepcion" (ngSubmit)="guardarRecepcion()" autocomplete="off" class="p-6">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Orden compra *</label>
+              <select formControlName="idOrdenCompra" (change)="cambiarOrdenRecepcion($event)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="">Seleccione orden</option>
+                @for (orden of ordenes(); track idOrden(orden)) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="idOrden(orden)">
+                    {{ numeroOrden(orden) }} · {{ proveedorOrden(orden) }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Almacén destino *</label>
+              <select formControlName="idAlmacen" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="">Seleccione almacén</option>
+                @for (almacen of almacenes(); track almacen.idAlmacen) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="almacen.idAlmacen">
+                    {{ almacenTexto(almacen) }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Fecha y hora de recepción *</label>
+              <input type="datetime-local" formControlName="fechaRecepcion" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Documento de respaldo</label>
+              <input type="text" formControlName="documentoRespaldo" maxlength="50" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="Ej. GUIA-000123" />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Archivo de respaldo</label>
+              <div class="file-upload-field">
+                <input
+                  id="archivoRecepcion"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  (change)="cambiarArchivoRecepcion($event)"
+                  class="file-upload-input"
+                />
+                <label for="archivoRecepcion" class="file-upload-box">
+                  <span class="file-upload-button">
+                    <svg class="file-upload-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M12 15V3m0 0 4 4m-4-4-4 4M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Seleccionar archivo
+                  </span>
+                  <span class="file-upload-name">
+                    {{ archivoRecepcion() || 'Ningún archivo seleccionado' }}
+                  </span>
+                </label>
+              </div>
+              <p class="mt-2 text-xs font-semibold text-slate-500">
+                Formatos permitidos: PDF, JPG, JPEG, PNG
+              </p>
+              @if (archivoRecepcionError()) {
+                <p class="mt-2 text-xs font-black text-red-700">{{ archivoRecepcionError() }}</p>
+              }
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Notas de recepción / Estado de entrega</label>
+              <textarea formControlName="observaciones" rows="2" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="Ej. Carga recibida completa sin problemas en el portón principal."></textarea>
+            </div>
+          </div>
+
+          <div class="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <h4 class="text-lg font-black text-slate-950">Detalle recibido</h4>
+                <p class="text-sm text-slate-500">Registre los insumos recibidos.</p>
+              </div>
+
+              <button type="button" (click)="agregarDetalleRecepcion()" class="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white hover:bg-slate-800">
+                + Agregar
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              @for (detalle of detallesRecepcion(); track $index) {
+                <div class="grid grid-cols-1 gap-3 rounded-2xl bg-white p-4 md:grid-cols-6">
+                  <div class="md:col-span-2">
+                  <select [value]="detalle.idInsumo" (change)="cambiarDetalleRecepcion($index, 'idInsumo', $event)" [class.campo-formulario-invalido]="detalleRecepcionInsumoInvalido($index)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                    <option value="">Seleccione insumo</option>
+                    @for (detalleOrden of detallesOrdenRecepcion(); track detalleOrden.idOrdenDetalle || detalleOrden.id_orden_detalle || $index) {
+                      <option class="bg-white text-slate-900 font-bold" [value]="idInsumoDetalleOrden(detalleOrden)">
+                        {{ nombreDetalle(detalleOrden) }}
+                      </option>
+                    }
+                  </select>
+                  @if (detalleRecepcionInsumoInvalido($index)) {
+                    <p class="campo-error">Seleccione un insumo.</p>
+                  }
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <p class="text-xs font-bold text-slate-500">Comprada/pendiente</p>
+                    <p class="mt-1 font-black text-slate-900">
+                      {{ cantidadCompradaFormularioRecepcion(detalle.idInsumo) }}
+                    </p>
+                  </div>
+
+                  <label class="text-xs font-bold text-slate-500">
+                    Cantidad recibida
+                    <input type="number" min="0.01" step="0.01" [value]="detalle.cantidadRecibida" (input)="cambiarDetalleRecepcion($index, 'cantidadRecibida', $event)" [class.campo-formulario-invalido]="detalleRecepcionCantidadInvalida($index)" class="modal-form-control mt-1 w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="0" />
+                    @if (detalleRecepcionCantidadInvalida($index)) {
+                      <p class="campo-error">Ingrese una cantidad mayor a cero.</p>
+                    }
+                  </label>
+
+                  <label class="text-xs font-bold text-slate-500">
+                    Cantidad rechazada
+                    <input type="number" min="0" step="0.01" [value]="detalle.cantidadRechazada" (input)="cambiarDetalleRecepcion($index, 'cantidadRechazada', $event)" [class.campo-formulario-invalido]="detalleRecepcionCantidadRechazadaInvalida($index)" class="modal-form-control mt-1 w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" placeholder="0" />
+                    @if (detalleRecepcionCantidadRechazadaInvalida($index)) {
+                      <p class="campo-error">No puede superar la cantidad recibida.</p>
+                    }
+                  </label>
+
+                  <button type="button" (click)="quitarDetalleRecepcion($index)" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-black text-red-700 hover:bg-red-100">
+                    Quitar
+                  </button>
+
+                  <select [value]="detalle.estadoConformidad" (change)="cambiarDetalleRecepcion($index, 'estadoConformidad', $event)" class="modal-form-control rounded-2xl px-4 py-3 text-sm font-bold outline-none md:col-span-2">
+                    <option value="CONFORME">Conforme</option>
+                    <option value="OBSERVADO">Observado</option>
+                    <option value="RECHAZADO">Rechazado</option>
+                  </select>
+
+                  @if (+detalle.cantidadRechazada > 0 || detalle.estadoConformidad !== 'CONFORME') {
+                    <div class="md:col-span-2" [class.campo-formulario-invalido]="detalleRecepcionMotivoInvalido($index)">
+                    <input type="text" [value]="detalle.motivoRechazo" (input)="cambiarDetalleRecepcion($index, 'motivoRechazo', $event)" class="modal-form-control rounded-2xl px-4 py-3 text-sm font-bold outline-none md:col-span-2" placeholder="Motivo del rechazo u observación" />
+                    @if (detalleRecepcionMotivoInvalido($index)) {
+                      <p class="campo-error">Debe tener al menos 3 caracteres.</p>
+                    }
+                    </div>
+                  }
+
+                  <input type="text" [value]="detalle.observaciones" (input)="cambiarDetalleRecepcion($index, 'observaciones', $event)" class="modal-form-control rounded-2xl px-4 py-3 text-sm font-bold outline-none md:col-span-2" placeholder="Observaciones del detalle" />
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-2xl border border-green-100 bg-green-50 px-4 py-3">
+            <p class="text-xs font-bold uppercase text-green-600">Estado calculado de recepción</p>
+            <p class="mt-1 font-black text-green-900">{{ estadoRecepcionFormulario() }}</p>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button>
+            <button type="submit" [disabled]="guardando()" class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white hover:bg-green-700 disabled:opacity-60">
+              @if (guardando()) { Guardando... } @else { Registrar recepción }
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'nuevo-comprobante') {
+        <form [formGroup]="formComprobante" (ngSubmit)="guardarComprobante()" autocomplete="off" class="p-6">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Orden compra *</label>
+              <select formControlName="idOrdenCompra" (change)="cambiarOrdenComprobante($event)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="">Seleccione orden</option>
+                @for (orden of ordenes(); track idOrden(orden)) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="idOrden(orden)">
+                    {{ numeroOrden(orden) }} · {{ proveedorOrden(orden) }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Tipo comprobante *</label>
+              <select formControlName="tipoComprobante" (change)="cambiarTipoComprobante($event)" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="">Seleccione tipo</option>
+                @for (tipo of tiposComprobante; track tipo.valor) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="tipo.valor">{{ tipo.etiqueta }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Número comprobante *</label>
+              <input type="text" formControlName="numeroComprobante" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Fecha emisión *</label>
+              <input type="datetime-local" formControlName="fechaEmision" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Subtotal *</label>
+              <input type="number" min="0.01" step="0.01" formControlName="montoSubtotal" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+              <p class="mt-2 text-xs font-semibold text-slate-500">Se completa desde la orden seleccionada.</p>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Descuento (BOB)</label>
+              <input type="number" min="0" step="0.01" formControlName="montoDescuento" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none" />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Moneda *</label>
+              <select formControlName="moneda" class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none">
+                <option value="BOB">Bolivianos (BOB)</option>
+                <option value="USD">Dólares (USD)</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Observaciones</label>
+              <textarea formControlName="observaciones" rows="3" class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none"></textarea>
+            </div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-1 gap-3 rounded-2xl border border-violet-100 bg-violet-50 px-5 py-4 sm:grid-cols-3">
+            <div>
+              <p class="text-xs font-bold uppercase text-violet-600">Subtotal</p>
+              <p class="mt-1 font-black text-violet-950">{{ formComprobante.controls.moneda.value }} {{ formComprobante.controls.montoSubtotal.value || 0 }}</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-violet-600">Descuento (BOB)</p>
+              <p class="mt-1 font-black text-violet-950">- {{ formComprobante.controls.montoDescuento.value || 0 }} BOB</p>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-violet-600">Total Comprobante</p>
+              <p class="mt-1 text-2xl font-black text-violet-900">
+                {{ formComprobante.controls.moneda.value }} {{ montoTotalComprobanteFormulario() }}
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button type="button" (click)="cerrarModal()" class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50">Cancelar</button>
+            <button type="submit" [disabled]="guardando()" class="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white hover:bg-violet-700 disabled:opacity-60">
+              @if (guardando()) { Guardando... } @else { Registrar comprobante }
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'orden') {
+        @if (ordenSeleccionada(); as item) {
+          <div class="p-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Orden</p>
+                <p class="mt-1 font-black text-slate-900">{{ numeroOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Proveedor</p>
+                <p class="mt-1 font-black text-slate-900">{{ proveedorOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Subtotal</p>
+                <p class="mt-1 font-black text-blue-700">{{ monedaOrden(item) }} {{ subtotalOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Descuento (BOB)</p>
+                <p class="mt-1 font-black text-blue-700">{{ monedaOrden(item) }} {{ descuentoOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-blue-50 p-4">
+                <p class="text-xs font-bold uppercase text-blue-500">Total de la orden</p>
+                <p class="mt-1 font-black text-blue-800">{{ monedaOrden(item) }} {{ totalOrden(item) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha orden</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaOrden(item)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Pedido</p>
+                <p class="mt-1 font-black text-slate-900">{{ pedidoOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Condición de pago</p>
+                <p class="mt-1 font-black text-slate-900">{{ condicionPagoOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Forma de pago</p>
+                <p class="mt-1 font-black text-slate-900">{{ formaPagoOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Entrega estimada</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaEntregaOrden(item)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Aprobado por</p>
+                <p class="mt-1 font-black text-slate-900">{{ aprobadorOrden(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha aprobación</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaAprobacionOrden(item)) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 rounded-3xl border border-slate-200">
+              <div class="border-b border-slate-200 p-5">
+                <h4 class="text-lg font-black text-slate-950">Detalle de la orden</h4>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+                      <th class="px-5 py-3">Insumo</th>
+                      <th class="px-5 py-3">Cantidad</th>
+                      <th class="px-5 py-3">Precio unitario</th>
+                      <th class="px-5 py-3">Subtotal</th>
+                      <th class="px-5 py-3">Observación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (detalle of detallesOrdenItem(item); track $index) {
+                      <tr class="border-b border-slate-100">
+                        <td class="px-5 py-3 font-bold text-slate-900">{{ nombreDetalle(detalle) }}</td>
+                        <td class="px-5 py-3 font-black text-blue-700">{{ cantidadDetalle(detalle) }}</td>
+                        <td class="px-5 py-3 text-slate-700">{{ monedaOrden(item) }} {{ precioDetalleOrden(detalle) }}</td>
+                        <td class="px-5 py-3 font-black text-blue-700">{{ monedaOrden(item) }} {{ subtotalDetalleOrden(detalle) }}</td>
+                        <td class="px-5 py-3 text-slate-600">{{ observacionDetalle(detalle) }}</td>
+                      </tr>
+                    } @empty {
+                      <tr>
+                        <td colspan="5" class="px-5 py-8 text-center text-sm font-semibold text-slate-500">
+                          No hay detalles cargados.
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-wrap justify-end gap-3">
+              @if (tienePermiso('comprobantes.exportar_pdf')) {
+                <button type="button" (click)="imprimirPdf('orden', item)" class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-black text-blue-700 hover:bg-blue-100">
+                  Imprimir
+                </button>
+                <button type="button" (click)="exportarPdf('orden', item)" class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700">
+                  Exportar PDF
+                </button>
+              }
+              <button type="button" (click)="cerrarModal()" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'recepcion') {
+        @if (recepcionSeleccionada(); as item) {
+          <div class="p-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Recepción</p>
+                <p class="mt-1 font-black text-slate-900">{{ numeroRecepcion(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Orden</p>
+                <p class="mt-1 font-black text-slate-900">{{ numeroOrdenRecepcion(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Estado</p>
+                <p class="mt-1 font-black text-green-700">{{ estadoRecepcion(item) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha recepción</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaRecepcion(item)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Responsable</p>
+                <p class="mt-1 font-black text-slate-900">{{ responsableRecepcion(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Proveedor</p>
+                <p class="mt-1 font-black text-slate-900">{{ proveedorRecepcion(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Almacén destino</p>
+                <p class="mt-1 font-black text-slate-900">{{ almacenRecepcion(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Documento respaldo</p>
+                <p class="mt-1 font-black text-slate-900">{{ documentoRecepcion(item) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full min-w-[900px] text-left text-sm">
+                <thead>
+                  <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+                    <th class="px-4 py-3">Insumo</th>
+                    <th class="px-4 py-3">Comprada</th>
+                    <th class="px-4 py-3">Recibida</th>
+                    <th class="px-4 py-3">Aceptada</th>
+                    <th class="px-4 py-3">Rechazada</th>
+                    <th class="px-4 py-3">Faltante</th>
+                    <th class="px-4 py-3">Conformidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (detalle of detallesRecepcionItem(item); track $index) {
+                    <tr class="border-b border-slate-100">
+                      <td class="px-4 py-3 font-bold text-slate-900">{{ nombreDetalle(detalle) }}</td>
+                      <td class="px-4 py-3 font-black text-blue-700">{{ cantidadCompradaRecepcion(detalle) }}</td>
+                      <td class="px-4 py-3 font-black text-blue-700">{{ cantidadRecibidaDetalle(detalle) }}</td>
+                      <td class="px-4 py-3 font-black text-green-700">{{ cantidadAceptadaDetalle(detalle) }}</td>
+                      <td class="px-4 py-3 font-black text-red-700">{{ cantidadRechazadaDetalle(detalle) }}</td>
+                      <td class="px-4 py-3 font-black text-amber-700">{{ cantidadFaltanteDetalle(detalle) }}</td>
+                      <td class="px-4 py-3">
+                        <span class="rounded-full border px-3 py-1 text-xs font-black" [class]="claseConformidad(conformidadDetalle(detalle))">
+                          {{ conformidadDetalle(detalle) }}
+                        </span>
+                      </td>
+                    </tr>
+                    @if (motivoRechazoDetalle(detalle)) {
+                      <tr class="border-b border-slate-100 bg-red-50">
+                        <td colspan="7" class="px-4 py-2 text-sm font-semibold text-red-700">
+                          Motivo: {{ motivoRechazoDetalle(detalle) }}
+                        </td>
+                      </tr>
+                    }
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="px-4 py-8 text-center text-slate-500">Sin detalles registrados.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-6 flex flex-wrap justify-end gap-3">
+              @if (tienePermiso('comprobantes.exportar_pdf')) {
+                <button type="button" (click)="imprimirPdf('recepcion', item)" class="rounded-2xl border border-green-200 bg-green-50 px-5 py-3 text-sm font-black text-green-700 hover:bg-green-100">
+                  Imprimir
+                </button>
+                <button type="button" (click)="exportarPdf('recepcion', item)" class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white hover:bg-green-700">
+                  Exportar PDF
+                </button>
+              }
+              <button type="button" (click)="cerrarModal()" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'comprobante') {
+        @if (comprobanteSeleccionado(); as item) {
+          <div class="p-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Comprobante</p>
+                <p class="mt-1 font-black text-slate-900">{{ numeroComprobante(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Proveedor</p>
+                <p class="mt-1 font-black text-slate-900">{{ proveedorComprobante(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Monto</p>
+                <p class="mt-1 font-black text-violet-700">{{ monedaComprobante(item) }} {{ montoComprobante(item) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha emisión</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaComprobante(item)) }}</p>
+              </div>
+              @if (fechaPagoComprobante(item); as fechaPago) {
+                <div class="rounded-2xl bg-slate-50 p-4">
+                  <p class="text-xs font-bold uppercase text-slate-400">Fecha pago</p>
+                  <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaPago) }}</p>
+                </div>
+              }
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Tipo</p>
+                <p class="mt-1 font-black text-slate-900">{{ etiquetaTipoComprobante(tipoComprobante(item)) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Orden</p>
+                <p class="mt-1 font-black text-slate-900">{{ numeroOrdenComprobante(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">NIT proveedor</p>
+                <p class="mt-1 font-black text-slate-900">{{ nitComprobante(item) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Estado</p>
+                <p class="mt-1 font-black text-slate-900">{{ estadoComprobante(item) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 gap-3 rounded-2xl border border-violet-100 bg-violet-50 p-5 md:grid-cols-3">
+              <div>
+                <p class="text-xs font-bold uppercase text-violet-500">Subtotal</p>
+                <p class="mt-1 font-black text-violet-950">{{ monedaComprobante(item) }} {{ subtotalComprobante(item) }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold uppercase text-violet-500">Descuento</p>
+                <p class="mt-1 font-black text-violet-950">{{ monedaComprobante(item) }} {{ descuentoComprobante(item) }}</p>
+              </div>
+              <div>
+                <p class="text-xs font-bold uppercase text-violet-500">Total</p>
+                <p class="mt-1 text-lg font-black text-violet-800">{{ monedaComprobante(item) }} {{ montoComprobante(item) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-wrap justify-end gap-3">
+              @if (tienePermiso('comprobantes.exportar_pdf')) {
+                <button type="button" (click)="imprimirPdf('comprobante', item)" class="rounded-2xl border border-violet-200 bg-violet-50 px-5 py-3 text-sm font-black text-violet-700 hover:bg-violet-100">
+                  Imprimir
+                </button>
+                <button type="button" (click)="exportarPdf('comprobante', item)" class="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white hover:bg-violet-700">
+                  Exportar PDF
+                </button>
+              }
+              <button type="button" (click)="cerrarModal()" class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+    </div>
+  </div>
+}

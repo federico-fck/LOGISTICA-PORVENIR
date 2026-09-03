@@ -1,0 +1,810 @@
+<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Usuarios</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Administración de usuarios, roles, áreas y accesos del sistema.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <button
+      type="button"
+      (click)="cargarUsuarios()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Actualizar
+    </button>
+
+    @if (tienePermiso('roles.ver')) {
+      <a
+        routerLink="/usuarios/roles-permisos"
+        role="button"
+        class="inline-flex items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-black text-blue-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50"
+      >
+        <span aria-hidden="true">&#128737;&#65039;</span>
+        <span>Roles y permisos</span>
+      </a>
+    }
+
+    @if (tienePermiso('usuarios.crear')) {
+      <button
+        type="button"
+        (click)="abrirNuevo()"
+        class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+      >
+        + Nuevo usuario
+      </button>
+    }
+  </div>
+</div>
+
+@if (error() && !modalAbierto()) {
+  <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+    {{ error() }}
+  </div>
+}
+
+<div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+      👥
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Total usuarios</p>
+    <h3 class="mt-2 text-4xl font-black text-slate-950">
+      {{ totalUsuarios() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">
+      ✅
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Activos</p>
+    <h3 class="mt-2 text-4xl font-black text-green-600">
+      {{ totalActivos() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-2xl">
+      ⛔
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Inactivos</p>
+    <h3 class="mt-2 text-4xl font-black text-red-600">
+      {{ totalInactivos() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-2xl">
+      🛡️
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Filtrados</p>
+    <h3 class="mt-2 text-4xl font-black text-violet-600">
+      {{ usuariosFiltrados().length }}
+    </h3>
+  </div>
+</div>
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="flex flex-col gap-4 border-b border-slate-200 p-6 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h3 class="text-xl font-black text-slate-950">Listado de usuarios</h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Usuarios registrados en la Cooperativa Minera El Porvenir R.L.
+      </p>
+    </div>
+
+    <div class="relative w-full lg:w-96">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+        🔎
+      </span>
+
+      <input
+        type="text"
+        [value]="busqueda()"
+        (input)="cambiarBusqueda($event)"
+        class="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+        placeholder="Buscar por nombre, usuario, rol, área..."
+      />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+      Cargando usuarios...
+    </div>
+  }
+
+  <div class="usuarios-table-shell">
+    <table class="usuarios-table w-full text-left text-sm">
+      <colgroup>
+        <col class="col-usuario" />
+        <col class="col-documento" />
+        <col class="col-contacto" />
+        <col class="col-rol-area" />
+        <col class="col-estado" />
+        <col class="col-acciones" />
+      </colgroup>
+      <thead>
+        <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+          <th class="px-4 py-4">Usuario</th>
+          <th class="px-4 py-4">Documento</th>
+          <th class="px-4 py-4">Contacto</th>
+          <th class="px-4 py-4">Rol / &Aacute;rea</th>
+          <th class="px-4 py-4">Estado</th>
+          <th class="px-3 py-4 text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (usuario of usuariosFiltrados(); track usuario.idUsuario; let indice = $index; let total = $count) {
+          <tr
+            class="usuario-row border-b border-slate-100 transition hover:bg-slate-50"
+            [class.usuario-row-menu-open]="menuAccionesAbierto(usuario)"
+          >
+            <td class="usuario-cell px-4 py-4" data-label="Usuario">
+              <div class="usuario-identidad">
+                <div class="usuario-avatar">
+                  {{ obtenerIniciales(usuario) }}
+                </div>
+
+                <div class="usuario-info">
+                  <p class="usuario-nombre">
+                    {{ usuario.nombreCompleto }}
+                  </p>
+                  <p class="usuario-sublinea">
+                    @{{ usuario.nombreUsuario }}
+                  </p>
+                  <p class="usuario-correo">
+                    {{ usuario.correo || 'Sin correo' }}
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-4 py-4" data-label="Documento">
+              <span class="usuario-documento">
+                {{ formatearDocumentoUsuario(usuario) }}
+              </span>
+            </td>
+
+            <td class="px-4 py-4" data-label="Contacto">
+              <span class="usuario-contacto">
+                {{ formatearContactoUsuario(usuario) }}
+              </span>
+            </td>
+
+            <td class="px-4 py-4" data-label="Rol / Area">
+              <span class="usuario-badge usuario-badge-rol">
+                {{ obtenerRol(usuario) }}
+              </span>
+              <p class="usuario-area">
+                {{ obtenerArea(usuario) }}
+              </p>
+            </td>
+
+            <td class="px-4 py-4" data-label="Estado">
+              <span
+                [class]="claseEstado(usuario.estado)"
+              >
+                {{ usuario.estado }}
+              </span>
+            </td>
+
+            <td class="acciones-cell px-3 py-4" data-label="Acciones">
+              <div class="acciones-menu-wrapper" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="acciones-trigger"
+                  (click)="alternarMenuAcciones(usuario, $event)"
+                  aria-haspopup="menu"
+                  [attr.aria-expanded]="menuAccionesAbierto(usuario)"
+                  [attr.aria-label]="'Acciones de ' + usuario.nombreCompleto"
+                >
+                  <span class="acciones-menu-icon" aria-hidden="true">&#8942;</span>
+                </button>
+
+                @if (menuAccionesAbierto(usuario)) {
+                  <div
+                    class="acciones-menu"
+                    [class.acciones-menu-arriba]="menuAccionesHaciaArriba(usuario, indice, total)"
+                    role="menu"
+                  >
+                    @if (tienePermiso('usuarios.ver')) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirVerDesdeMenu(usuario)"
+                        class="acciones-menu-item accion-ver"
+                      >
+                        <span class="acciones-item-icon" aria-hidden="true">&#128065;</span>
+                        <span>Ver detalle</span>
+                      </button>
+                    }
+
+                    @if (tienePermiso('usuarios.editar')) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirEditarDesdeMenu(usuario)"
+                        class="acciones-menu-item accion-editar"
+                      >
+                        <span class="acciones-item-icon" aria-hidden="true">&#9998;</span>
+                        <span>Editar</span>
+                      </button>
+                    }
+
+                    @if (tienePermiso(estaActivo(usuario) ? 'usuarios.desactivar' : 'usuarios.activar')) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirEstadoDesdeMenu(usuario)"
+                        [class]="estaActivo(usuario) ? 'acciones-menu-item accion-desactivar' : 'acciones-menu-item accion-activar'"
+                      >
+                        <span class="acciones-item-icon" aria-hidden="true">
+                          @if (estaActivo(usuario)) {
+                            &#9888;
+                          } @else {
+                            &#10003;
+                          }
+                        </span>
+                        <span>{{ estaActivo(usuario) ? 'Desactivar' : 'Activar' }}</span>
+                      </button>
+                    }
+
+                    @if (tienePermiso('usuarios.eliminar')) {
+                      <button
+                        type="button"
+                        role="menuitem"
+                        (click)="abrirEliminarDesdeMenu(usuario)"
+                        class="acciones-menu-item accion-eliminar"
+                      >
+                        <span class="acciones-item-icon" aria-hidden="true">&#128465;</span>
+                        <span>Eliminar</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+              No se encontraron usuarios.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-slate-950/60 p-4 backdrop-blur-sm sm:p-6">
+    <div class="usuario-modal border border-slate-200 bg-white shadow-2xl">
+      <div class="usuario-modal-header flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">
+            @if (modoModal() === 'nuevo') {
+              Nuevo usuario
+            } @else if (modoModal() === 'editar') {
+              Editar usuario
+            } @else {
+              Detalle del usuario
+            }
+          </h3>
+
+          <p class="mt-1 text-sm text-slate-500">
+            @if (modoModal() === 'ver') {
+              Información completa del usuario seleccionado.
+            } @else {
+              Complete los datos del formulario.
+            }
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+        >
+          ✕
+        </button>
+      </div>
+
+      @if (error() && modalAbierto()) {
+        <div class="mx-6 mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+          {{ error() }}
+        </div>
+      }
+
+      @if (modoModal() === 'ver') {
+        @if (usuarioSeleccionado(); as usuario) {
+          <div class="usuario-modal-body">
+            <div class="mb-6 flex items-center gap-4">
+              <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-500 text-lg font-black text-white">
+                {{ obtenerIniciales(usuario) }}
+              </div>
+
+              <div>
+                <h4 class="text-2xl font-black text-slate-950">
+                  {{ usuario.nombreCompleto }}
+                </h4>
+                <p class="text-sm font-semibold text-slate-500">
+                  @{{ usuario.nombreUsuario }}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Correo</p>
+                <p class="mt-1 font-bold text-slate-900">{{ usuario.correo || 'Sin correo' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Documento de identidad</p>
+                <p class="mt-1 font-bold text-slate-900">{{ formatearDocumentoUsuario(usuario) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Contacto</p>
+                <p class="mt-1 font-bold text-slate-900">{{ usuario.telefono || 'Sin contacto' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Cargo</p>
+                <p class="mt-1 font-bold text-slate-900">{{ usuario.cargo || 'Sin cargo' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Rol</p>
+                <p class="mt-1 font-bold text-blue-700">{{ obtenerRol(usuario) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Área</p>
+                <p class="mt-1 font-bold text-slate-900">{{ obtenerArea(usuario) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Estado</p>
+                <p class="mt-1 font-bold text-green-600">{{ usuario.estado }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+              <button
+                type="button"
+                (click)="cerrarModal()"
+                class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'nuevo' || modoModal() === 'editar') {
+        <form [formGroup]="form" (ngSubmit)="guardarUsuario()" class="usuario-modal-form">
+          <div class="usuario-modal-body">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="md:col-span-2">
+              <p class="text-sm font-black uppercase tracking-wide text-slate-500">
+                Datos de acceso
+              </p>
+            </div>
+
+            <div>
+              <label
+                class="mb-2 block text-sm font-bold text-slate-700"
+                [class.campo-label-invalido]="campoInvalido('nombreUsuario')"
+              >
+                Usuario *
+              </label>
+              <input
+                type="text"
+                formControlName="nombreUsuario"
+                maxlength="25"
+                (input)="normalizarUsuarioInput()"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('nombreUsuario')"
+                [attr.aria-invalid]="campoInvalido('nombreUsuario') ? 'true' : null"
+                placeholder="usuario.minero"
+              />
+              @if (campoInvalido('nombreUsuario')) {
+                <p class="campo-error">{{ mensajeCampo('nombreUsuario') }}</p>
+              }
+            </div>
+
+            <div>
+              <label
+                class="mb-2 block text-sm font-bold text-slate-700"
+                [class.campo-label-invalido]="campoInvalido('nombreCompleto')"
+              >
+                Nombre completo *
+              </label>
+              <input
+                type="text"
+                formControlName="nombreCompleto"
+                maxlength="50"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('nombreCompleto')"
+                [attr.aria-invalid]="campoInvalido('nombreCompleto') ? 'true' : null"
+              />
+              @if (campoInvalido('nombreCompleto')) {
+                <p class="campo-error">{{ mensajeCampo('nombreCompleto') }}</p>
+              }
+            </div>
+
+            <div>
+              <label
+                class="mb-2 block text-sm font-bold text-slate-700"
+                [class.campo-label-invalido]="campoInvalido('correo')"
+              >
+                Correo *
+              </label>
+              <input
+                type="email"
+                formControlName="correo"
+                maxlength="60"
+                (input)="normalizarCorreoInput()"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('correo')"
+                [attr.aria-invalid]="campoInvalido('correo') ? 'true' : null"
+                placeholder="usuario@dominio.com"
+              />
+              @if (campoInvalido('correo')) {
+                <p class="campo-error">{{ mensajeCampo('correo') }}</p>
+              }
+            </div>
+
+            <div class="md:col-span-2">
+              <p class="mb-3 text-sm font-black text-slate-800">
+                Documento de identidad
+              </p>
+
+              <div class="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,1fr)]">
+                <div>
+                  <label class="mb-2 block text-sm font-bold text-slate-700">
+                    Cédula de identidad *
+                  </label>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    maxlength="9"
+                    formControlName="cedulaIdentidad"
+                    (input)="normalizarCedulaInput()"
+                    class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    [class.campo-formulario-invalido]="campoInvalido('cedulaIdentidad')"
+                    [attr.aria-invalid]="campoInvalido('cedulaIdentidad') ? 'true' : null"
+                    placeholder="Ej. 12901305"
+                  />
+                  @if (campoInvalido('cedulaIdentidad')) {
+                    <p class="campo-error">{{ mensajeCampo('cedulaIdentidad') }}</p>
+                  }
+                </div>
+
+                <div>
+                  <label class="mb-2 block text-sm font-bold text-slate-700">
+                    Complemento
+                  </label>
+                  <input
+                    type="text"
+                    maxlength="2"
+                    formControlName="complementoCi"
+                    (input)="normalizarComplementoInput()"
+                    class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold uppercase outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    [class.campo-formulario-invalido]="campoInvalido('complementoCi')"
+                    [attr.aria-invalid]="campoInvalido('complementoCi') ? 'true' : null"
+                    placeholder="Ej. 1A"
+                  />
+                  @if (campoInvalido('complementoCi')) {
+                    <p class="campo-error">{{ mensajeCampo('complementoCi') }}</p>
+                  }
+                </div>
+
+                <div>
+                  <label class="mb-2 block text-sm font-bold text-slate-700">
+                    Expedido
+                  </label>
+                  <select
+                    formControlName="expedidoCi"
+                    class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                  >
+                    <option value="">Seleccione</option>
+                    @for (opcion of expedidosCi; track opcion.codigo) {
+                      <option [value]="opcion.codigo">
+                        {{ opcion.codigo }} - {{ opcion.departamento }}
+                      </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="md:col-span-2">
+              <p class="text-sm font-black uppercase tracking-wide text-slate-500">
+                Datos laborales
+              </p>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Contacto *
+              </label>
+              <div
+                class="telefono-input-wrapper flex overflow-hidden rounded-2xl border border-slate-300 bg-white focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('telefono')"
+              >
+                <span class="flex items-center border-r border-slate-200 bg-slate-100 px-4 text-sm font-black text-slate-600">+591</span>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="8"
+                  formControlName="telefono"
+                  (input)="normalizarTelefonoInput()"
+                  class="w-full border-0 bg-white px-4 py-3 text-sm font-semibold outline-none"
+                  [attr.aria-invalid]="campoInvalido('telefono') ? 'true' : null"
+                  placeholder="70000000"
+                />
+              </div>
+              @if (campoInvalido('telefono')) {
+                <p class="campo-error">{{ mensajeCampo('telefono') }}</p>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Cargo / Puesto
+              </label>
+              <input
+                type="text"
+                formControlName="cargo"
+                maxlength="100"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('cargo')"
+                [attr.aria-invalid]="campoInvalido('cargo') ? 'true' : null"
+                placeholder="Ej. Presidente de vigilancia, Encargado de almacén, Auxiliar administrativo"
+              />
+              @if (campoInvalido('cargo')) {
+                <p class="campo-error">{{ mensajeCampo('cargo') }}</p>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Rol *
+              </label>
+              <select
+                formControlName="idRol"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('idRol')"
+                [attr.aria-invalid]="campoInvalido('idRol') ? 'true' : null"
+              >
+                @for (rol of roles; track rol.idRol) {
+                  <option [value]="rol.idRol">{{ rol.nombreRol }}</option>
+                }
+              </select>
+              @if (campoInvalido('idRol')) {
+                <p class="campo-error">{{ mensajeCampo('idRol') }}</p>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Área *
+              </label>
+              <select
+                formControlName="idArea"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('idArea')"
+                [attr.aria-invalid]="campoInvalido('idArea') ? 'true' : null"
+              >
+                @for (area of areas; track area.idArea) {
+                  <option [value]="area.idArea">{{ area.nombreArea }}</option>
+                }
+              </select>
+              @if (campoInvalido('idArea')) {
+                <p class="campo-error">{{ mensajeCampo('idArea') }}</p>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Estado *
+              </label>
+              <select
+                formControlName="estado"
+                class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                [class.campo-formulario-invalido]="campoInvalido('estado')"
+                [attr.aria-invalid]="campoInvalido('estado') ? 'true' : null"
+              >
+                <option value="ACTIVO">ACTIVO</option>
+                <option value="INACTIVO">INACTIVO</option>
+              </select>
+              @if (campoInvalido('estado')) {
+                <p class="campo-error">{{ mensajeCampo('estado') }}</p>
+              }
+            </div>
+
+            <div class="md:col-span-2">
+              <p class="text-sm font-black uppercase tracking-wide text-slate-500">
+                Seguridad de contraseña
+              </p>
+            </div>
+
+            @if (modoModal() === 'nuevo') {
+              <div>
+                <label class="mb-2 block text-sm font-bold text-slate-700">
+                  Contraseña *
+                </label>
+                <div class="password-input-wrapper">
+                  <input
+                    [type]="mostrarPasswordInicial() ? 'text' : 'password'"
+                    formControlName="password"
+                    (input)="validarConfirmacionPassword()"
+                    class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-24 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    [class.campo-formulario-invalido]="campoInvalido('password')"
+                    [attr.aria-invalid]="campoInvalido('password') ? 'true' : null"
+                    placeholder="Ingrese contraseña inicial"
+                  />
+                  <button
+                    type="button"
+                    (click)="alternarPasswordInicial()"
+                    class="password-toggle-button"
+                  >
+                    {{ mostrarPasswordInicial() ? 'Ocultar' : 'Ver' }}
+                  </button>
+                </div>
+                @if (campoInvalido('password')) {
+                  <p class="campo-error">{{ mensajeCampo('password') }}</p>
+                }
+              </div>
+            } @else {
+              <div class="md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p class="text-sm font-black text-slate-800">
+                    Contraseña actual:
+                    <span class="text-blue-700">Protegida</span>
+                  </p>
+
+                  <label class="inline-flex items-center gap-3 text-sm font-black text-slate-700">
+                    <input
+                      type="checkbox"
+                      [checked]="cambiarPassword()"
+                      (change)="alternarCambioPassword($event)"
+                      class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Cambiar contraseña
+                  </label>
+                </div>
+              </div>
+
+              @if (cambiarPassword()) {
+                <div>
+                  <label class="mb-2 block text-sm font-bold text-slate-700">
+                    Nueva contraseña *
+                  </label>
+                  <div class="password-input-wrapper">
+                    <input
+                      [type]="mostrarNuevaPassword() ? 'text' : 'password'"
+                      formControlName="password"
+                      (input)="validarConfirmacionPassword()"
+                      class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-24 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                      [class.campo-formulario-invalido]="campoInvalido('password')"
+                      [attr.aria-invalid]="campoInvalido('password') ? 'true' : null"
+                    />
+                    <button
+                      type="button"
+                      (click)="alternarNuevaPassword()"
+                      class="password-toggle-button"
+                    >
+                      {{ mostrarNuevaPassword() ? 'Ocultar' : 'Ver' }}
+                    </button>
+                  </div>
+                  @if (campoInvalido('password')) {
+                    <p class="campo-error">{{ mensajeCampo('password') }}</p>
+                  }
+                </div>
+
+                <div>
+                  <label class="mb-2 block text-sm font-bold text-slate-700">
+                    Confirmar nueva contraseña *
+                  </label>
+                  <div class="password-input-wrapper">
+                    <input
+                      [type]="mostrarConfirmarPassword() ? 'text' : 'password'"
+                      formControlName="confirmarPassword"
+                      class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-24 text-sm font-semibold outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                    />
+                    <button
+                      type="button"
+                      (click)="alternarConfirmarPassword()"
+                      class="password-toggle-button"
+                    >
+                      {{ mostrarConfirmarPassword() ? 'Ocultar' : 'Ver' }}
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          </div>
+
+          <div class="usuario-modal-footer flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="cerrarModal()"
+              class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-60"
+            >
+              @if (guardando()) {
+                Guardando...
+              } @else if (modoModal() === 'nuevo') {
+                Crear usuario
+              } @else {
+                Guardar cambios
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+}
+
+@if (confirmacionAbierta()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+    <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+      <h3 class="text-xl font-black text-slate-950">
+        {{ tituloConfirmacion() }}
+      </h3>
+
+      <p class="mt-2 text-sm text-slate-500">
+        {{ mensajeConfirmacion() }}
+      </p>
+
+      @if (usuarioSeleccionado(); as usuario) {
+        <div class="mt-4 rounded-2xl bg-slate-50 p-4">
+          <p class="font-black text-slate-900">{{ usuario.nombreCompleto }}</p>
+          <p class="text-sm text-slate-500">@{{ usuario.nombreUsuario }}</p>
+        </div>
+      }
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="cerrarConfirmacion()"
+          class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          (click)="confirmarCambioEstado()"
+          [disabled]="guardando()"
+          class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800 disabled:opacity-60"
+        >
+          @if (guardando()) {
+            Procesando...
+          } @else {
+            {{ textoBotonConfirmacion() }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

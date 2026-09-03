@@ -1,0 +1,42 @@
+<svg width="900" height="700" viewBox="0 0 900 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="700" rx="32" fill="#0F172A"/>
+  <circle cx="750" cy="120" r="160" fill="#1D4ED8" opacity="0.25"/>
+  <circle cx="150" cy="580" r="190" fill="#06B6D4" opacity="0.18"/>
+
+  <path d="M90 520L270 340L390 460L520 300L810 520H90Z" fill="#1E293B"/>
+  <path d="M270 340L390 460L520 300L640 390L810 520H90L270 340Z" fill="#334155"/>
+  <path d="M520 300L600 360L640 390L810 520H390L520 300Z" fill="#475569"/>
+
+  <rect x="190" y="420" width="310" height="80" rx="18" fill="#F97316"/>
+  <rect x="230" y="365" width="180" height="70" rx="16" fill="#F59E0B"/>
+  <rect x="245" y="382" width="48" height="28" rx="6" fill="#0F172A"/>
+  <rect x="310" y="382" width="70" height="28" rx="6" fill="#0F172A"/>
+
+  <circle cx="260" cy="510" r="38" fill="#020617"/>
+  <circle cx="430" cy="510" r="38" fill="#020617"/>
+  <circle cx="260" cy="510" r="17" fill="#64748B"/>
+  <circle cx="430" cy="510" r="17" fill="#64748B"/>
+
+  <path d="M470 420L560 330" stroke="#FACC15" stroke-width="22" stroke-linecap="round"/>
+  <path d="M560 330L625 365" stroke="#FACC15" stroke-width="18" stroke-linecap="round"/>
+  <path d="M560 330L525 265" stroke="#FACC15" stroke-width="18" stroke-linecap="round"/>
+
+  <rect x="560" y="505" width="210" height="18" rx="9" fill="#94A3B8"/>
+  <rect x="590" y="470" width="150" height="18" rx="9" fill="#64748B"/>
+  <rect x="625" y="435" width="80" height="18" rx="9" fill="#475569"/>
+
+  <circle cx="180" cy="165" r="64" fill="#2563EB"/>
+  <path d="M150 175L200 125" stroke="white" stroke-width="15" stroke-linecap="round"/>
+  <path d="M194 130L232 168" stroke="#F97316" stroke-width="11" stroke-linecap="round"/>
+  <path d="M185 140L220 175" stroke="#94A3B8" stroke-width="10" stroke-linecap="round"/>
+
+  <text x="285" y="145" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="800">
+    Cooperativa Minera
+  </text>
+  <text x="285" y="192" fill="#38BDF8" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="900">
+    El Porvenir R.L.
+  </text>
+  <text x="285" y="235" fill="#CBD5E1" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="500">
+    Gestión logística de insumos y compras para operación mina
+  </text>
+</svg>

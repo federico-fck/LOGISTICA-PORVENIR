@@ -1,0 +1,656 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f8fafc;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.module-card {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.tabla-responsive,
+.overflow-x-auto {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabla-responsive table,
+.overflow-x-auto table {
+  max-width: none;
+  border-collapse: collapse;
+}
+
+body .fixed.inset-0.z-50 {
+  z-index: 9000 !important;
+}
+
+body .fixed.inset-0.z-50 > * {
+  position: relative;
+  z-index: 1;
+}
+
+.modal-profesional,
+app-almacenes .fixed.inset-0 > .w-full.max-w-4xl,
+app-insumos .fixed.inset-0 > .w-full.max-w-4xl,
+app-proveedores .fixed.inset-0 > .w-full.max-w-5xl,
+app-pedidos .fixed.inset-0 > .w-full.max-w-5xl,
+app-compras-comprobantes .fixed.inset-0 > .w-full.max-w-5xl,
+app-inventario-despachos-flujo .fixed.inset-0 > .w-full.max-w-4xl,
+app-inventario-despachos-flujo .fixed.inset-0 > form.w-full.max-w-5xl {
+  width: calc(100vw - 32px) !important;
+  max-height: calc(100vh - 48px) !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.modal-header-sticky,
+app-almacenes .fixed.inset-0 > .w-full.max-w-4xl > div:first-child,
+app-insumos .fixed.inset-0 > .w-full.max-w-4xl > div:first-child,
+app-proveedores .fixed.inset-0 > .w-full.max-w-5xl > div:first-child,
+app-pedidos .fixed.inset-0 > .w-full.max-w-5xl > div:first-child,
+app-compras-comprobantes .fixed.inset-0 > .w-full.max-w-5xl > div:first-child,
+app-inventario-despachos-flujo .fixed.inset-0 > .w-full.max-w-4xl > div:first-child,
+app-inventario-despachos-flujo .fixed.inset-0 > form.w-full.max-w-5xl > div:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex: 0 0 auto;
+  background: #ffffff;
+}
+
+.modal-body-scroll,
+app-almacenes .fixed.inset-0 > .w-full.max-w-4xl > form,
+app-almacenes .fixed.inset-0 > .w-full.max-w-4xl > .p-6,
+app-insumos .fixed.inset-0 > .w-full.max-w-4xl > form,
+app-insumos .fixed.inset-0 > .w-full.max-w-4xl > .p-6,
+app-proveedores .fixed.inset-0 > .w-full.max-w-5xl > form,
+app-proveedores .fixed.inset-0 > .w-full.max-w-5xl > .p-6,
+app-pedidos .fixed.inset-0 > .w-full.max-w-5xl > form,
+app-pedidos .fixed.inset-0 > .w-full.max-w-5xl > .p-6,
+app-compras-comprobantes .fixed.inset-0 > .w-full.max-w-5xl > form,
+app-compras-comprobantes .fixed.inset-0 > .w-full.max-w-5xl > .p-6,
+app-inventario-despachos-flujo .fixed.inset-0 > .w-full.max-w-4xl > form,
+app-inventario-despachos-flujo .fixed.inset-0 > .w-full.max-w-4xl > .p-6,
+app-inventario-despachos-flujo .fixed.inset-0 > form.w-full.max-w-5xl > div:nth-child(2) {
+  min-height: 0;
+  overflow-y: auto !important;
+}
+
+.modal-footer-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  flex: 0 0 auto;
+  background: #ffffff;
+}
+
+app-almacenes .fixed.inset-0 form > .mt-7.flex,
+app-insumos .fixed.inset-0 form > .mt-7.flex,
+app-proveedores .fixed.inset-0 form > .mt-7.flex,
+app-pedidos .fixed.inset-0 form > .mt-7.flex,
+app-compras-comprobantes .fixed.inset-0 form > .mt-7.flex,
+app-inventario-despachos-flujo .fixed.inset-0 form > .mt-7.flex,
+app-inventario-despachos-flujo .fixed.inset-0 form > .mt-6.flex {
+  position: sticky;
+  bottom: -1px;
+  z-index: 9;
+  margin-right: -1.5rem;
+  margin-left: -1.5rem;
+  padding: 1rem 1.5rem 0;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.form-grid,
+.form-grid-2,
+.form-grid-3 {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-grid,
+.form-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+  .modal-profesional,
+  app-almacenes .fixed.inset-0 > .w-full.max-w-4xl,
+  app-insumos .fixed.inset-0 > .w-full.max-w-4xl,
+  app-proveedores .fixed.inset-0 > .w-full.max-w-5xl,
+  app-pedidos .fixed.inset-0 > .w-full.max-w-5xl,
+  app-compras-comprobantes .fixed.inset-0 > .w-full.max-w-5xl,
+  app-inventario-despachos-flujo .fixed.inset-0 > .w-full.max-w-4xl,
+  app-inventario-despachos-flujo .fixed.inset-0 > form.w-full.max-w-5xl {
+    width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 24px) !important;
+    border-radius: 20px !important;
+  }
+
+  .form-grid,
+  .form-grid-2,
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .fixed.inset-0 button {
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+/* ======================================================
+   OCULTAR TARJETAS RESUMEN EN TODOS LOS MÓDULOS
+   Excepto en Dashboard.
+   No afecta acciones, formularios ni tablas.
+   ====================================================== */
+
+/* Oculta grids de tarjetas con números grandes fuera del Dashboard */
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-3xl),
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-4xl),
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-5xl),
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-6xl) {
+  display: none !important;
+}
+
+/* Por si algún módulo usa otro selector de componente */
+body:not(:has(app-dashboard)) main .grid:has(> div .text-3xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-4xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-5xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-6xl) {
+  display: none !important;
+}
+
+/* Mantener visibles las tarjetas del Dashboard */
+body:has(app-dashboard) app-admin-layout main .grid,
+body:has(app-dashboard) main .grid {
+  display: grid !important;
+}
+
+
+/* ======================================================
+   OCULTAR RESUMEN GENERAL EN PDF / IMPRESIÓN
+   ====================================================== */
+
+@media print {
+  .resumen-general,
+  .resumen-reporte,
+  .summary-grid,
+  .report-summary,
+  .stats-grid,
+  .cards-resumen,
+  .tarjetas-resumen,
+  .reporte-resumen,
+  .print-summary,
+  .general-summary {
+    display: none !important;
+  }
+
+  h2:has(+ .summary-grid),
+  h2:has(+ .report-summary),
+  h2:has(+ .stats-grid),
+  h2:has(+ .cards-resumen),
+  h2:has(+ .tarjetas-resumen) {
+    display: none !important;
+  }
+}
+
+
+/* ======================================================
+   OCULTAR TARJETAS RESUMEN RESTAURADO
+   Excepto Dashboard.
+   ====================================================== */
+
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-3xl),
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-4xl),
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-5xl),
+body:not(:has(app-dashboard)) app-admin-layout main .grid:has(> div .text-6xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-3xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-4xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-5xl),
+body:not(:has(app-dashboard)) main .grid:has(> div .text-6xl) {
+  display: none !important;
+}
+
+body:has(app-dashboard) app-admin-layout main .grid,
+body:has(app-dashboard) main .grid {
+  display: grid !important;
+}
+
+/* ======================================================
+   CORRECCIÓN ROLES Y PERMISOS
+   El ocultado global de tarjetas escondió el listado de roles.
+   Esto vuelve a mostrar el contenido del módulo sin afectar Dashboard.
+   ====================================================== */
+
+app-roles-permisos main .grid,
+app-roles-permisos .grid,
+app-roles-permisos section .grid,
+app-roles-permisos .roles-grid,
+app-roles-permisos .permisos-grid,
+app-roles-permisos .usuarios-grid {
+  display: grid !important;
+}
+
+/* Mantener ocultas solo las tarjetas resumen superiores si existen */
+app-roles-permisos > .grid:first-of-type,
+app-roles-permisos main > .grid:first-of-type {
+  display: none !important;
+}
+
+/* Asegurar que el listado de roles sí se vea */
+app-roles-permisos section,
+app-roles-permisos article,
+app-roles-permisos .rounded-3xl {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Si el listado está dentro de una tarjeta, mostrar su grid interno */
+app-roles-permisos .rounded-3xl .grid {
+  display: grid !important;
+}
+
+/* ======================================================
+   ROLES Y PERMISOS - FORZAR LISTADO VISIBLE
+   ====================================================== */
+
+body:not(:has(app-dashboard)) main #roles-listado-grid {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body:not(:has(app-dashboard)) main #roles-listado-grid > div {
+  display: block !important;
+}
+
+/* ======================================================
+   TABLAS PROFESIONALES GLOBALES
+   Estilo compartido para todos los módulos restantes.
+   ====================================================== */
+
+app-admin-layout main table:not(.usuarios-table),
+.lp-data-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+app-admin-layout main table:not(.usuarios-table) thead tr,
+.lp-data-table thead tr {
+  background: #f1f5f9 !important;
+}
+
+app-admin-layout main table:not(.usuarios-table) th,
+.lp-data-table th {
+  height: 56px;
+  padding: 14px 16px !important;
+  border-right: 1px solid #d8e2ef !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.14em !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  vertical-align: middle !important;
+}
+
+app-admin-layout main table:not(.usuarios-table) td,
+.lp-data-table td {
+  min-width: 0;
+  padding: 14px 16px !important;
+  border-right: 1px solid #d8e2ef !important;
+  border-bottom: 1px solid #d8e2ef !important;
+  background: #ffffff !important;
+  color: #1e293b;
+  font-weight: 700;
+  text-align: center !important;
+  vertical-align: middle !important;
+  overflow: visible;
+}
+
+app-admin-layout main table:not(.usuarios-table) th:last-child,
+app-admin-layout main table:not(.usuarios-table) td:last-child,
+.lp-data-table th:last-child,
+.lp-data-table td:last-child {
+  border-right: 0 !important;
+}
+
+app-admin-layout main table:not(.usuarios-table) tbody tr,
+.lp-data-table tbody tr {
+  position: relative;
+  z-index: 0;
+}
+
+app-admin-layout main table:not(.usuarios-table) tbody tr:focus-within,
+.lp-data-table tbody tr:focus-within,
+app-admin-layout main table:not(.usuarios-table) tbody tr:has(.lp-actions.is-open),
+.lp-data-table tbody tr:has(.lp-actions.is-open) {
+  z-index: 30;
+}
+
+app-admin-layout main table:not(.usuarios-table) tbody tr:focus-within td,
+.lp-data-table tbody tr:focus-within td,
+app-admin-layout main table:not(.usuarios-table) tbody tr:has(.lp-actions.is-open) td,
+.lp-data-table tbody tr:has(.lp-actions.is-open) td {
+  position: relative;
+  z-index: 30;
+}
+
+app-admin-layout main table:not(.usuarios-table) tbody tr:hover td,
+.lp-data-table tbody tr:hover td {
+  background: #f8fafc !important;
+}
+
+app-admin-layout main table:not(.usuarios-table) td:first-child .flex,
+.lp-data-table td:first-child .flex {
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+}
+
+app-admin-layout main table:not(.usuarios-table) td > .flex,
+.lp-data-table td > .flex {
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+app-admin-layout main table:not(.usuarios-table) td > .flex > *,
+.lp-data-table td > .flex > * {
+  min-width: 0;
+}
+
+app-admin-layout main table:not(.usuarios-table) td p,
+.lp-data-table td p {
+  overflow: hidden;
+  overflow-wrap: break-word;
+  text-overflow: ellipsis;
+}
+
+app-admin-layout main table:not(.usuarios-table) td span[class*="rounded-full"],
+.lp-data-table td span[class*="rounded-full"] {
+  display: inline-flex;
+  max-width: min(100%, 180px);
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.lp-neutral-chip {
+  display: inline-flex;
+  max-width: min(100%, 180px);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  padding: 0.35rem 0.85rem;
+  color: #0f4fe6;
+  font-size: 0.75rem;
+  font-weight: 950;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.lp-table-shell,
+.lp-table-shell.overflow-x-auto {
+  position: relative;
+  overflow: visible !important;
+}
+
+.lp-actions-cell {
+  position: relative !important;
+  width: 84px;
+  padding: 10px 12px !important;
+  text-align: center !important;
+  overflow: visible;
+}
+
+.lp-actions {
+  position: relative;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.lp-actions-cell:focus-within,
+.lp-actions:focus-within,
+.lp-actions.is-open {
+  z-index: 50;
+}
+
+.lp-actions-trigger {
+  display: inline-flex !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #c8d4e3 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
+  color: #1e293b !important;
+  padding: 0 !important;
+  font-size: 28px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08) !important;
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.lp-actions-trigger:hover,
+.lp-actions.is-open .lp-actions-trigger {
+  border-color: #93c5fd !important;
+  background: linear-gradient(180deg, #eff6ff, #dbeafe) !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.16) !important;
+  transform: translateY(-1px);
+}
+
+.lp-actions-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 70;
+  display: none;
+  width: 220px;
+  border: 1px solid #dbe3ee;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 8px;
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
+  text-align: left;
+  isolation: isolate;
+}
+
+.lp-actions.is-open .lp-actions-menu {
+  display: block;
+}
+
+.lp-actions.is-upward .lp-actions-menu,
+.lp-data-table tbody tr:nth-last-child(-n + 2) .lp-actions-menu,
+app-admin-layout main table:not(.usuarios-table) tbody tr:nth-last-child(-n + 2) .lp-actions-menu {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.lp-actions-item {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 42px !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 10px 12px !important;
+  color: #334155 !important;
+  font-size: 13.5px !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+
+.lp-actions-item:hover {
+  background: #f8fafc !important;
+}
+
+.lp-actions-icon {
+  width: 24px;
+  flex: 0 0 24px;
+  text-align: center;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.lp-action-view {
+  color: #475569 !important;
+}
+
+.lp-action-edit {
+  color: #1d4ed8 !important;
+}
+
+.lp-action-edit:hover {
+  background: #eff6ff !important;
+}
+
+.lp-action-success {
+  color: #15803d !important;
+}
+
+.lp-action-success:hover {
+  background: #f0fdf4 !important;
+}
+
+.lp-action-warning {
+  color: #c2410c !important;
+}
+
+.lp-action-warning:hover {
+  background: #fff7ed !important;
+}
+
+.lp-action-danger {
+  color: #b91c1c !important;
+}
+
+.lp-action-danger:hover {
+  background: #fef2f2 !important;
+}
+
+@media (max-width: 760px) {
+  .lp-table-shell,
+  .lp-table-shell.overflow-x-auto {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+  }
+
+  .lp-actions-menu {
+    right: 0;
+  }
+}
+
+/* ======================================================
+   VALIDACION POR CAMPO
+   ====================================================== */
+
+input.campo-formulario-invalido,
+select.campo-formulario-invalido,
+textarea.campo-formulario-invalido,
+.campo-formulario-invalido > input,
+.campo-formulario-invalido > select,
+.campo-formulario-invalido > textarea,
+.campo-formulario-invalido .modal-form-control,
+.modal-form-control.campo-formulario-invalido,
+.campo-formulario-invalido.modal-form-control,
+.campo-formulario-invalido.flex,
+.campo-formulario-invalido[class*="border"] {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12) !important;
+}
+
+input.campo-formulario-invalido:focus,
+select.campo-formulario-invalido:focus,
+textarea.campo-formulario-invalido:focus,
+.modal-form-control.campo-formulario-invalido:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.18) !important;
+  outline: none !important;
+}
+
+.campo-error {
+  display: block;
+  width: 100%;
+  margin: 0.45rem 0 0;
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.campo-label-invalido {
+  color: #b91c1c !important;
+}

@@ -1,0 +1,33 @@
+:host input,
+:host select,
+:host textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  font-weight: 700;
+  color-scheme: light;
+}
+
+:host input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ======================================================
+   ROLES Y PERMISOS - CORRECCIÓN LISTADO
+   Muestra el listado de roles aunque estén ocultas las tarjetas resumen.
+   ====================================================== */
+
+#roles-resumen-superior {
+  display: none !important;
+}
+
+#roles-listado-grid {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#roles-listado-grid > div {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}

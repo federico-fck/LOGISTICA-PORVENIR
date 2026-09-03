@@ -1,0 +1,360 @@
+<div class="reportes-page">
+  <div class="no-print mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h2 class="text-3xl font-black text-slate-950">Reportes</h2>
+      <p class="mt-1 text-sm text-slate-500">
+        Reportes operativos de inventario, pedidos, compras, comprobantes y movimientos.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <button
+        type="button"
+        (click)="cargarReportes()"
+        class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+      >
+        Actualizar
+      </button>
+
+      @if (tienePermiso('reportes.exportar')) {
+        <button
+          type="button"
+          (click)="exportarExcelCsv()"
+          class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700"
+        >
+          Exportar Excel/CSV
+        </button>
+      }
+
+      @if (tienePermiso('reportes.imprimir')) {
+        <button
+          type="button"
+          (click)="imprimirReporteActual()"
+          class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+        >
+          Imprimir reporte actual
+        </button>
+
+        <button
+          type="button"
+          (click)="imprimirReporteGeneral()"
+          class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800"
+        >
+          Imprimir reporte general
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="no-print mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="hidden">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+        📦
+      </div>
+      <p class="text-sm font-semibold text-slate-500">Insumos registrados</p>
+      <h3 class="mt-2 text-4xl font-black text-slate-950">{{ totalInsumos() }}</h3>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-2xl">
+        ⚠️
+      </div>
+      <p class="text-sm font-semibold text-slate-500">Stock bajo</p>
+      <h3 class="mt-2 text-4xl font-black text-orange-600">{{ totalStockBajo() }}</h3>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">
+        📝
+      </div>
+      <p class="text-sm font-semibold text-slate-500">Pedidos</p>
+      <h3 class="mt-2 text-4xl font-black text-green-600">{{ totalPedidos() }}</h3>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-2xl">
+        🧾
+      </div>
+      <p class="text-sm font-semibold text-slate-500">Comprobantes</p>
+      <h3 class="mt-2 text-4xl font-black text-violet-600">{{ totalComprobantes() }}</h3>
+    </div>
+  </div>
+
+  <div class="hidden">
+    <div class="rounded-3xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
+      <p class="text-sm font-semibold text-slate-400">Valor inventario</p>
+      <h3 class="mt-2 text-3xl font-black">Bs {{ valorTotalInventario() }}</h3>
+      <p class="mt-2 text-xs font-semibold text-slate-400">
+        Según datos devueltos por inventario.
+      </p>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold text-slate-500">Monto órdenes de compra</p>
+      <h3 class="mt-2 text-3xl font-black text-blue-700">Bs {{ montoTotalOrdenes() }}</h3>
+      <p class="mt-2 text-xs font-semibold text-slate-400">
+        Total consolidado de órdenes registradas.
+      </p>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p class="text-sm font-semibold text-slate-500">Monto comprobantes</p>
+      <h3 class="mt-2 text-3xl font-black text-violet-700">Bs {{ montoTotalComprobantes() }}</h3>
+      <p class="mt-2 text-xs font-semibold text-slate-400">
+        Total consolidado de comprobantes.
+      </p>
+    </div>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <div class="no-print border-b border-slate-200 p-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap gap-2">
+          @for (tab of tabsReporteDisponibles(); track tab.valor) {
+            <button
+              type="button"
+              (click)="cambiarTab(tab.valor)"
+              class="rounded-2xl px-4 py-2 text-sm font-black transition"
+              [class]="
+                tabActual() === tab.valor
+                  ? tab.claseActiva
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              "
+            >
+              {{ tab.etiqueta }}
+            </button>
+          }
+        </div>
+
+        <div class="relative w-full lg:w-96">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+
+          <input
+            type="text"
+            [value]="busqueda()"
+            (input)="cambiarBusqueda($event)"
+            class="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+            placeholder="Buscar en el reporte actual..."
+          />
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
+        @if (muestraFiltroFechas()) {
+          <label class="report-filter-field">
+            Fecha rápida
+            <select
+              [value]="fechaRapida()"
+              (change)="cambiarFechaRapida($event)"
+              class="report-filter-control"
+            >
+              @for (opcion of opcionesFechaRapida; track opcion.valor) {
+                <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="report-filter-field">
+            Desde
+            <input
+              type="date"
+              [value]="fechaDesde()"
+              (input)="cambiarFechaDesde($event)"
+              class="report-filter-control"
+            />
+          </label>
+
+          <label class="report-filter-field">
+            Hasta
+            <input
+              type="date"
+              [value]="fechaHasta()"
+              (input)="cambiarFechaHasta($event)"
+              class="report-filter-control"
+            />
+          </label>
+        }
+
+        @if (tabActual() !== 'movimientos') {
+          <label class="report-filter-field">
+            Estado
+            <select
+              [value]="estadoFiltro()"
+              (change)="cambiarEstadoFiltro($event)"
+              class="report-filter-control"
+            >
+              <option value="">Todos</option>
+              @for (estado of opcionesEstadoActual(); track estado) {
+                <option [value]="estado">{{ estado }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (muestraFiltroTipo()) {
+          <label class="report-filter-field">
+            {{ etiquetaTipoFiltro() }}
+            <select
+              [value]="tipoFiltro()"
+              (change)="cambiarTipoFiltro($event)"
+              class="report-filter-control"
+            >
+              <option value="">Todos</option>
+              @for (tipo of opcionesTipoActual(); track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (muestraFiltroProveedor()) {
+          <label class="report-filter-field">
+            Proveedor
+            <select
+              [value]="proveedorFiltro()"
+              (change)="cambiarProveedorFiltro($event)"
+              class="report-filter-control"
+            >
+              <option value="">Todos</option>
+              @for (proveedor of opcionesProveedorActual(); track proveedor) {
+                <option [value]="proveedor">{{ proveedor }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (muestraFiltroAlmacen()) {
+          <label class="report-filter-field">
+            Almacén
+            <select
+              [value]="almacenFiltro()"
+              (change)="cambiarAlmacenFiltro($event)"
+              class="report-filter-control"
+            >
+              <option value="">Todos</option>
+              @for (almacen of opcionesAlmacenActual(); track almacen) {
+                <option [value]="almacen">{{ almacen }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        <div class="flex items-end">
+          <button
+            type="button"
+            (click)="limpiarFiltrosReportes()"
+            class="h-11 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reporte-imprimible p-6">
+      <div class="mb-6 flex flex-col gap-2 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
+            Cooperativa Minera El Porvenir R.L.
+          </p>
+
+          <h3 class="mt-2 text-2xl font-black text-slate-950">
+            {{ tituloReporte() }}
+          </h3>
+
+          <p class="mt-1 text-sm font-semibold text-slate-500">
+            {{ descripcionReporte() }}
+          </p>
+        </div>
+
+        <div class="text-left lg:text-right">
+          <p class="text-xs font-bold uppercase tracking-widest text-slate-400">
+            Fecha de generación
+          </p>
+          <p class="mt-1 text-sm font-black text-slate-700">
+            {{ fechaHoraFormateada(fechaActualizacion()) }}
+          </p>
+          <p class="mt-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+            Usuario generador
+          </p>
+          <p class="mt-1 text-sm font-black text-slate-700">
+            {{ usuarioGeneradorReporte() }}
+          </p>
+        </div>
+      </div>
+
+      @if (cargando()) {
+        <div class="mb-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+          Cargando datos del reporte...
+        </div>
+      }
+
+      <div class="mb-4 flex items-center justify-between">
+        <p class="text-sm font-bold text-slate-500">
+          Registros encontrados:
+          <span class="text-slate-950">{{ datosFiltrados().length }}</span>
+        </p>
+
+        <p class="no-print text-xs font-bold uppercase tracking-widest text-slate-400">
+          Vista actual: {{ tabActual() }}
+        </p>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-200">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+              @for (col of columnasActuales(); track col.key) {
+                <th class="px-5 py-4">
+                  {{ col.label }}
+                </th>
+              }
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of datosFiltrados(); track claveFila(item, $index)) {
+              <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+                @for (col of columnasActuales(); track col.key) {
+                  <td class="px-5 py-4">
+                    @if (col.key === 'estado' || col.key === 'aprobacion') {
+                      <span
+                        class="rounded-full border px-3 py-1 text-xs font-black"
+                        [class]="claseEstado(valorCelda(item, col.key))"
+                      >
+                        {{ valorCelda(item, col.key) }}
+                      </span>
+                    } @else {
+                      <span class="font-semibold text-slate-700">
+                        {{ valorCelda(item, col.key) }}
+                      </span>
+                    }
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td
+                  [attr.colspan]="columnasActuales().length"
+                  class="px-5 py-10 text-center text-sm font-semibold text-slate-500"
+                >
+                  No se encontraron registros para este reporte.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 hidden border-t border-slate-200 pt-4 text-xs text-slate-500 print:block">
+        Sistema web full stack para la gestión logística de insumos y compras en operación mina.
+      </div>
+    </div>
+  </div>
+</div>

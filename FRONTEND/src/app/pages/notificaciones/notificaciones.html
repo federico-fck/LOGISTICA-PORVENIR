@@ -1,0 +1,374 @@
+<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Notificaciones</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Alertas del sistema, avisos de stock, pedidos, aprobaciones y movimientos logísticos.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row">
+    @if (tienePermiso('notificaciones.marcar_leida')) {
+      <button
+      type="button"
+      (click)="marcarTodasLeidas()"
+      [disabled]="guardando() || totalNoLeidas() === 0"
+      class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:opacity-60"
+    >
+      Marcar todas leídas
+      </button>
+    }
+
+    <button
+      type="button"
+      (click)="cargarNotificaciones()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Actualizar
+    </button>
+  </div>
+</div>
+
+@if (error() && !modalAbierto()) {
+  <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+    {{ error() }}
+  </div>
+}
+
+<div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+      🔔
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Total</p>
+    <h3 class="mt-2 text-4xl font-black text-slate-950">{{ totalNotificaciones() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-2xl">
+      🟠
+    </div>
+    <p class="text-sm font-semibold text-slate-500">No leídas</p>
+    <h3 class="mt-2 text-4xl font-black text-orange-600">{{ totalNoLeidas() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">
+      ✅
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Leídas</p>
+    <h3 class="mt-2 text-4xl font-black text-green-600">{{ totalLeidas() }}</h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-2xl">
+      🚨
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Urgentes</p>
+    <h3 class="mt-2 text-4xl font-black text-red-600">{{ totalUrgentes() }}</h3>
+  </div>
+</div>
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 p-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="cambiarFiltro('todas')"
+          class="rounded-2xl px-4 py-2 text-sm font-black transition"
+          [class]="filtroActual() === 'todas' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Todas
+        </button>
+
+        <button
+          type="button"
+          (click)="cambiarFiltro('no-leidas')"
+          class="rounded-2xl px-4 py-2 text-sm font-black transition"
+          [class]="filtroActual() === 'no-leidas' ? 'bg-orange-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          No leídas
+        </button>
+
+        <button
+          type="button"
+          (click)="cambiarFiltro('leidas')"
+          class="rounded-2xl px-4 py-2 text-sm font-black transition"
+          [class]="filtroActual() === 'leidas' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Leídas
+        </button>
+      </div>
+
+      <div class="relative w-full lg:w-96">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+
+        <input
+          type="text"
+          [value]="busqueda()"
+          (input)="cambiarBusqueda($event)"
+          class="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+          placeholder="Buscar por título, mensaje, módulo..."
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+      Cargando notificaciones...
+    </div>
+  }
+
+  <div class="divide-y divide-slate-100">
+    @for (item of notificacionesFiltradas(); track idNotificacion(item)) {
+      <div
+        class="flex flex-col gap-4 p-6 transition hover:bg-slate-50 lg:flex-row lg:items-start lg:justify-between"
+        [class]="estaLeida(item) ? 'bg-white' : 'bg-blue-50/40'"
+      >
+        <div class="flex gap-4">
+          <div
+            class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border text-2xl"
+            [class]="claseTipo(item)"
+          >
+            {{ iconoTipo(item) }}
+          </div>
+
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="text-lg font-black text-slate-950">
+                {{ titulo(item) }}
+              </h3>
+
+              @if (!estaLeida(item)) {
+                <span class="rounded-full bg-blue-600 px-3 py-1 text-xs font-black text-white">
+                  Nueva
+                </span>
+              }
+            </div>
+
+            <p class="mt-1 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+              {{ mensajeNotificacion(item) }}
+            </p>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="rounded-full border px-3 py-1 text-xs font-black" [class]="claseTipo(item)">
+                {{ tipoNotificacion(item) }}
+              </span>
+
+              <span class="rounded-full border px-3 py-1 text-xs font-black" [class]="clasePrioridad(item)">
+                {{ prioridad(item) }}
+              </span>
+
+              <span class="rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                {{ modulo(item) }}
+              </span>
+
+              <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-500">
+                {{ fechaFormateada(fechaCreacion(item)) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            (click)="abrirVer(item)"
+            class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-100"
+          >
+            Ver
+          </button>
+
+          @if (!estaLeida(item) && tienePermiso('notificaciones.marcar_leida')) {
+            <button
+              type="button"
+              (click)="marcarLeida(item)"
+              [disabled]="guardando()"
+              class="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-black text-green-700 transition hover:bg-green-100 disabled:opacity-60"
+            >
+              Leída
+            </button>
+          }
+
+          @if (tienePermiso('notificaciones.eliminar')) {
+            <button
+              type="button"
+              (click)="abrirEliminar(item)"
+              class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700 transition hover:bg-red-100"
+            >
+              Eliminar
+            </button>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="px-6 py-12 text-center">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-3xl">
+          🔕
+        </div>
+
+        <p class="text-sm font-black text-slate-700">
+          No se encontraron notificaciones.
+        </p>
+
+        <p class="mt-1 text-sm text-slate-500">
+          Intente actualizar o cambiar el filtro seleccionado.
+        </p>
+      </div>
+    }
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+    <div class="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-5">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">
+            @if (modoModal() === 'ver') {
+              Detalle de notificación
+            } @else {
+              Eliminar notificación
+            }
+          </h3>
+
+          <p class="mt-1 text-sm text-slate-500">
+            Información del aviso generado por el sistema.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+        >
+          ✕
+        </button>
+      </div>
+
+      @if (error() && modalAbierto()) {
+        <div class="mx-6 mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+          {{ error() }}
+        </div>
+      }
+
+      @if (modoModal() === 'ver') {
+        @if (notificacionSeleccionada(); as item) {
+          <div class="p-6">
+            <div class="mb-5 flex items-start gap-4">
+              <div
+                class="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl border text-3xl"
+                [class]="claseTipo(item)"
+              >
+                {{ iconoTipo(item) }}
+              </div>
+
+              <div>
+                <h4 class="text-2xl font-black text-slate-950">
+                  {{ titulo(item) }}
+                </h4>
+
+                <p class="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                  {{ mensajeNotificacion(item) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Tipo</p>
+                <p class="mt-1 font-black text-slate-900">{{ tipoNotificacion(item) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Prioridad</p>
+                <p class="mt-1 font-black text-slate-900">{{ prioridad(item) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Módulo</p>
+                <p class="mt-1 font-black text-slate-900">{{ modulo(item) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Estado</p>
+                <p class="mt-1 font-black" [class]="estaLeida(item) ? 'text-green-700' : 'text-orange-700'">
+                  {{ estaLeida(item) ? 'Leída' : 'No leída' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha creación</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaCreacion(item)) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Fecha lectura</p>
+                <p class="mt-1 font-black text-slate-900">{{ fechaFormateada(fechaLectura(item)) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                (click)="cerrarModal()"
+                class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+              >
+                Cerrar
+              </button>
+
+              @if (!estaLeida(item) && tienePermiso('notificaciones.marcar_leida')) {
+                <button
+                  type="button"
+                  (click)="marcarLeida(item)"
+                  class="rounded-2xl bg-green-600 px-5 py-3 text-sm font-black text-white hover:bg-green-700"
+                >
+                  Marcar como leída
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'eliminar') {
+        @if (notificacionSeleccionada(); as item) {
+          <div class="p-6">
+            <div class="rounded-2xl bg-red-50 p-5 text-red-800">
+              <p class="font-black">¿Desea eliminar esta notificación?</p>
+              <p class="mt-1 text-sm">
+                {{ titulo(item) }}
+              </p>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                (click)="cerrarModal()"
+                class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+
+              @if (tienePermiso('notificaciones.eliminar')) {
+                <button
+                  type="button"
+                  (click)="confirmarEliminar()"
+                  [disabled]="guardando()"
+                  class="rounded-2xl bg-red-600 px-5 py-3 text-sm font-black text-white hover:bg-red-700 disabled:opacity-60"
+                >
+                  @if (guardando()) {
+                    Eliminando...
+                  } @else {
+                    Eliminar
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}

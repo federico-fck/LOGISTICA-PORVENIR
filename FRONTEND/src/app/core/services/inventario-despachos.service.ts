@@ -1,0 +1,78 @@
+import { Injectable } from '@angular/core';
+import { ApiService } from './api.service';
+import {
+  CrearMovimientoInventario,
+  CrearDevolucionInventario,
+  CrearDespachoInventario,
+  CrearTransferenciaInventario,
+  Despacho,
+  InventarioItem,
+  MovimientoInventario,
+  PedidoAprobadoDespacho,
+} from '../models/inventario-despachos.model';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class InventarioDespachosService {
+  constructor(private readonly apiService: ApiService) {}
+
+  inventario() {
+    return this.apiService.get<InventarioItem[]>('inventario-despachos/inventario');
+  }
+
+  stockBajo() {
+    return this.apiService.get<InventarioItem[]>('inventario-despachos/stock-bajo');
+  }
+
+  movimientos() {
+    return this.apiService.get<MovimientoInventario[]>('inventario-despachos/movimientos');
+  }
+
+  registrarMovimiento(data: CrearMovimientoInventario) {
+    return this.apiService.post<MovimientoInventario>(
+      'inventario-despachos/movimientos',
+      data,
+    );
+  }
+
+  registrarTransferencia(data: CrearTransferenciaInventario) {
+    return this.apiService.post<{ codigoReferencia: string; movimientos: MovimientoInventario[] }>(
+      'inventario-despachos/transferencias',
+      data,
+    );
+  }
+
+  registrarDevolucion(data: CrearDevolucionInventario) {
+    return this.apiService.post<MovimientoInventario>(
+      'inventario-despachos/devoluciones',
+      data,
+    );
+  }
+
+  despachos() {
+    return this.apiService.get<Despacho[]>('inventario-despachos/despachos');
+  }
+
+  pedidosAprobadosParaDespacho() {
+    return this.apiService.get<any>('inventario-despachos/despachos/pedidos-aprobados');
+  }
+
+  buscarDespachoPorId(idDespacho: number) {
+    return this.apiService.get<Despacho>(`inventario-despachos/despachos/${idDespacho}`);
+  }
+
+  crearDespacho(data: CrearDespachoInventario) {
+    return this.apiService.post<Despacho>('inventario-despachos/despachos', data);
+  }
+
+
+  areasSistema() {
+    return this.apiService.get<any>('usuarios/areas');
+  }
+
+  usuariosSistema() {
+    return this.apiService.get<any>('usuarios');
+  }
+
+}

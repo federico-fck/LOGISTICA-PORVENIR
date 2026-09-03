@@ -1,0 +1,439 @@
+<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Auditoría</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Seguimiento de acciones realizadas dentro del sistema logístico.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <button
+      type="button"
+      (click)="limpiarFiltros()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Limpiar filtros
+    </button>
+
+    <button
+      type="button"
+      (click)="actualizar()"
+      class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+    >
+      Actualizar
+    </button>
+  </div>
+</div>
+
+<div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+      🛡️
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Total registros</p>
+    <h3 class="mt-2 text-4xl font-black text-slate-950">
+      {{ resumen()?.totalRegistros || totalRegistros() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">
+      ✅
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Creaciones</p>
+    <h3 class="mt-2 text-4xl font-black text-green-600">
+      {{ totalCrear() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+      ✏️
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Ediciones</p>
+    <h3 class="mt-2 text-4xl font-black text-blue-600">
+      {{ totalEditar() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-2xl">
+      🗑️
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Eliminaciones</p>
+    <h3 class="mt-2 text-4xl font-black text-red-600">
+      {{ totalEliminar() }}
+    </h3>
+  </div>
+</div>
+
+<div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="mb-5">
+    <h3 class="text-xl font-black text-slate-950">Filtros de búsqueda</h3>
+    <p class="mt-1 text-sm text-slate-500">
+      Puede buscar por acción, módulo, usuario, tabla o dirección IP.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
+    <div class="lg:col-span-2">
+      <label class="mb-2 block text-sm font-bold text-slate-700">
+        Buscar
+      </label>
+
+      <div class="relative">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+          🔎
+        </span>
+
+        <input
+          type="text"
+          [value]="busqueda()"
+          (input)="cambiarBusqueda($event)"
+          class="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+          placeholder="Buscar acción, usuario, módulo..."
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-bold text-slate-700">
+        Tipo de acción
+      </label>
+
+      <select
+        [value]="tipoSeleccionado()"
+        (change)="cambiarTipo($event)"
+        class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+      >
+        <option value="">Todos</option>
+        @for (tipo of tiposAccion(); track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-bold text-slate-700">
+        Módulo
+      </label>
+
+      <select
+        [value]="moduloSeleccionado()"
+        (change)="cambiarModulo($event)"
+        class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+      >
+        <option value="">Todos</option>
+        @for (modulo of modulos(); track modulo) {
+          <option [value]="modulo">{{ modulo }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-bold text-slate-700">
+        Acciones
+      </label>
+
+      <button
+        type="button"
+        (click)="cargarAuditoria()"
+        class="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800"
+      >
+        Aplicar
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div>
+      <label class="mb-2 block text-sm font-bold text-slate-700">
+        Fecha inicio
+      </label>
+
+      <input
+        type="date"
+        [value]="fechaInicio()"
+        (input)="cambiarFechaInicio($event)"
+        class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+      />
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-bold text-slate-700">
+        Fecha fin
+      </label>
+
+      <input
+        type="date"
+        [value]="fechaFin()"
+        (input)="cambiarFechaFin($event)"
+        class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+      />
+    </div>
+
+    <div class="flex items-end">
+      <button
+        type="button"
+        (click)="aplicarFechas()"
+        class="w-full rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-black text-blue-700 transition hover:bg-blue-100"
+      >
+        Aplicar fechas
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="flex items-center justify-between border-b border-slate-200 p-6">
+    <div>
+      <h3 class="text-xl font-black text-slate-950">Registros de auditoría</h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Historial de movimientos y acciones importantes del sistema.
+      </p>
+    </div>
+
+    <span class="rounded-full bg-slate-100 px-4 py-2 text-xs font-black text-slate-700">
+      {{ auditoriasFiltradas().length }} registros
+    </span>
+  </div>
+
+  @if (cargando()) {
+    <div class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+      Cargando registros de auditoría...
+    </div>
+  }
+
+  @if (error()) {
+    <div class="m-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+      {{ error() }}
+    </div>
+  }
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+          <th class="px-6 py-4">Acción</th>
+          <th class="px-6 py-4">Módulo</th>
+          <th class="px-6 py-4">Usuario</th>
+          <th class="px-6 py-4">Tabla</th>
+          <th class="px-6 py-4">Fecha y hora</th>
+          <th class="px-6 py-4">IP</th>
+          <th class="px-6 py-4 text-right">Detalle</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (item of auditoriasFiltradas(); track item.idAuditoria) {
+          <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-lg">
+                  {{ iconoTipo(item.tipoAccion) }}
+                </div>
+
+                <div>
+                  <span
+                    class="inline-flex rounded-full border px-3 py-1 text-xs font-black"
+                    [class]="claseTipo(item.tipoAccion)"
+                  >
+                    {{ etiquetaTipo(item.tipoAccion) }}
+                  </span>
+
+                  <p class="mt-2 max-w-xs text-xs font-semibold text-slate-500">
+                    {{ item.accionRealizada }}
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4">
+              <span class="lp-neutral-chip">
+                {{ item.moduloAfectado }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 text-slate-700">
+              {{ nombreUsuario(item) }}
+            </td>
+
+            <td class="px-6 py-4 text-slate-600">
+              {{ item.tablaAfectada || 'Sin tabla' }}
+            </td>
+
+            <td class="px-6 py-4 text-slate-600">
+              {{ fechaFormateada(item.fechaHora) }}
+            </td>
+
+            <td class="px-6 py-4 text-slate-600">
+              {{ item.direccionIp || 'No especificado' }}
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="flex justify-end">
+                @if (tienePermiso('auditoria.detalle')) {
+                  <button
+                    type="button"
+                    (click)="abrirDetalle(item)"
+                    class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-blue-100"
+                  >
+                    Ver detalle
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+              No se encontraron registros de auditoría.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (detalleAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+    <div class="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-5">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">Detalle de auditoría</h3>
+          <p class="mt-1 text-sm text-slate-500">
+            Información completa del registro seleccionado.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarDetalle()"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+        >
+          ✕
+        </button>
+      </div>
+
+      @if (auditoriaSeleccionada(); as item) {
+        <div class="p-6">
+          <div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Tipo acción</p>
+              <p class="mt-1 font-black text-slate-900">
+                {{ iconoTipo(item.tipoAccion) }} {{ etiquetaTipo(item.tipoAccion) }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Módulo</p>
+              <p class="mt-1 font-black text-blue-700">
+                {{ item.moduloAfectado }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Usuario</p>
+              <p class="mt-1 font-black text-slate-900">
+                {{ nombreUsuario(item) }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Fecha</p>
+              <p class="mt-1 font-black text-slate-900">
+                {{ fechaFormateada(item.fechaHora) }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Tabla afectada</p>
+              <p class="mt-1 font-black text-slate-900">
+                {{ item.tablaAfectada || 'Sin tabla' }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Registro afectado</p>
+              <p class="mt-1 font-black text-slate-900">
+                {{ item.idRegistroAfectado || 'Sin registro' }}
+              </p>
+            </div>
+          </div>
+
+          <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
+            <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Acción realizada</p>
+            <p class="mt-2 text-sm font-semibold text-slate-700">
+              {{ item.accionRealizada }}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 bg-slate-950 p-5">
+              <h4 class="mb-3 text-sm font-black uppercase tracking-wide text-slate-300">
+                Registro anterior
+              </h4>
+              
+  <div class="auditoria-registro-tabla">
+    @for (fila of filasRegistroAnteriorAuditoria(item); track fila.campo) {
+      <div class="auditoria-registro-fila">
+        <span class="auditoria-registro-campo">{{ fila.campo }}</span>
+        <span class="auditoria-registro-valor">{{ fila.valor }}</span>
+      </div>
+    }
+  </div>
+
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-slate-950 p-5">
+              <h4 class="mb-3 text-sm font-black uppercase tracking-wide text-slate-300">
+                Registro nuevo
+              </h4>
+              
+@if (filasRegistroAuditoria(registroNuevo(item)).length > 0) {
+  <div class="auditoria-registro-tabla">
+    @for (fila of filasRegistroAuditoria(registroNuevo(item)); track fila.campo) {
+      <div class="auditoria-registro-fila">
+        <span class="auditoria-registro-campo">{{ fila.campo }}</span>
+        <span class="auditoria-registro-valor">{{ fila.valor }}</span>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="auditoria-registro-vacio">Sin datos nuevos registrados.</div>
+}
+
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Dirección IP</p>
+              <p class="mt-1 font-bold text-slate-900">
+                {{ item.direccionIp || 'No especificado' }}
+              </p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-400">Observaciones</p>
+              <p class="mt-1 font-bold text-slate-900">
+                {{ observacionesAuditoria(item) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button
+              type="button"
+              (click)="cerrarDetalle()"
+              class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

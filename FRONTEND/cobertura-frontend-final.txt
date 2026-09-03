@@ -1,0 +1,185 @@
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m                                                    [2m | [22m[1mNames[22m                                                               [2m | [22m [1mRaw size[22m
+[32mchunk-52APAVDE.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m[36m278.97 kB[39m[2m | [22m
+[32mspec-app-pages-observability-pages.js[39m                                  [2m | [22m[2mspec-app-pages-observability-pages[22m                                  [2m | [22m[36m254.69 kB[39m[2m | [22m
+[32mchunk-R2B6VL2T.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m[36m228.46 kB[39m[2m | [22m
+[32mspec-app-pages-pedidos-pedidos.js[39m                                      [2m | [22m[2mspec-app-pages-pedidos-pedidos[22m                                      [2m | [22m[36m173.79 kB[39m[2m | [22m
+[32mspec-app-pages-reportes-reportes.js[39m                                    [2m | [22m[2mspec-app-pages-reportes-reportes[22m                                    [2m | [22m[36m109.42 kB[39m[2m | [22m
+[32mstyles.css[39m                                                             [2m | [22m[2mstyles[22m                                                              [2m | [22m [36m59.90 kB[39m[2m | [22m
+[32mspec-app-pages-dashboard-dashboard.js[39m                                  [2m | [22m[2mspec-app-pages-dashboard-dashboard[22m                                  [2m | [22m [36m40.32 kB[39m[2m | [22m
+[32mspec-app-pages-auth-login-login.js[39m                                     [2m | [22m[2mspec-app-pages-auth-login-login[22m                                     [2m | [22m [36m29.12 kB[39m[2m | [22m
+[32mspec-app-app.js[39m                                                        [2m | [22m[2mspec-app-app[22m                                                        [2m | [22m [36m16.58 kB[39m[2m | [22m
+[32mspec-app-core-services-domain-services.js[39m                              [2m | [22m[2mspec-app-core-services-domain-services[22m                              [2m | [22m [36m11.88 kB[39m[2m | [22m
+[32mchunk-GSUPTKTH.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m [36m10.91 kB[39m[2m | [22m
+[32mspec-app-core-interceptors-interceptors.js[39m                             [2m | [22m[2mspec-app-core-interceptors-interceptors[22m                             [2m | [22m  [36m9.43 kB[39m[2m | [22m
+[32mspec-app-pages-compras-comprobantes-compras-comprobantes.logic.js[39m      [2m | [22m[2mspec-app-pages-compras-comprobantes-compras-comprobantes.logic[22m      [2m | [22m  [36m8.33 kB[39m[2m | [22m
+[32mchunk-RVGUUYOP.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m7.99 kB[39m[2m | [22m
+[32mspec-app-pages-inventario-despachos-inventario-despachos-flujo.logic.js[39m[2m | [22m[2mspec-app-pages-inventario-despachos-inventario-despachos-flujo.logic[22m[2m | [22m  [36m7.94 kB[39m[2m | [22m
+[32mspec-app-core-guards-guards.js[39m                                         [2m | [22m[2mspec-app-core-guards-guards[22m                                         [2m | [22m  [36m5.37 kB[39m[2m | [22m
+[32mchunk-2Z5I4KOR.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m5.04 kB[39m[2m | [22m
+[32mchunk-NODDT5H6.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m4.90 kB[39m[2m | [22m
+[32mchunk-RSTWSNOR.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m4.75 kB[39m[2m | [22m
+[32mchunk-BWHNF7RM.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m4.75 kB[39m[2m | [22m
+[32mchunk-T53YWVEL.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m4.66 kB[39m[2m | [22m
+[32mspec-app-pages-usuarios-usuarios.js[39m                                    [2m | [22m[2mspec-app-pages-usuarios-usuarios[22m                                    [2m | [22m  [36m4.28 kB[39m[2m | [22m
+[32mchunk-44XZEZ55.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m4.08 kB[39m[2m | [22m
+[32mspec-app-pages-proveedores-proveedores.js[39m                              [2m | [22m[2mspec-app-pages-proveedores-proveedores[22m                              [2m | [22m  [36m4.02 kB[39m[2m | [22m
+[32mspec-app-core-state-auth.state.js[39m                                      [2m | [22m[2mspec-app-core-state-auth.state[22m                                      [2m | [22m  [36m3.91 kB[39m[2m | [22m
+[32mspec-app-pages-inventario-despachos-inventario-despachos.js[39m            [2m | [22m[2mspec-app-pages-inventario-despachos-inventario-despachos[22m            [2m | [22m  [36m3.37 kB[39m[2m | [22m
+[32mspec-app-pages-compras-comprobantes-compras-comprobantes.js[39m            [2m | [22m[2mspec-app-pages-compras-comprobantes-compras-comprobantes[22m            [2m | [22m  [36m3.35 kB[39m[2m | [22m
+[32mspec-app-pages-almacenes-almacenes.js[39m                                  [2m | [22m[2mspec-app-pages-almacenes-almacenes[22m                                  [2m | [22m  [36m3.35 kB[39m[2m | [22m
+[32mspec-app-core-forms-form-error-messages.js[39m                             [2m | [22m[2mspec-app-core-forms-form-error-messages[22m                             [2m | [22m  [36m3.28 kB[39m[2m | [22m
+[32mchunk-5CD57B43.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m3.25 kB[39m[2m | [22m
+[32mspec-app-core-forms-professional-forms-extra.js[39m                        [2m | [22m[2mspec-app-core-forms-professional-forms-extra[22m                        [2m | [22m  [36m2.87 kB[39m[2m | [22m
+[32mchunk-5SFE6BTF.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m2.80 kB[39m[2m | [22m
+[32mspec-app-core-services-permission.service.js[39m                           [2m | [22m[2mspec-app-core-services-permission.service[22m                           [2m | [22m  [36m2.75 kB[39m[2m | [22m
+[32mspec-app-core-services-api.service.js[39m                                  [2m | [22m[2mspec-app-core-services-api.service[22m                                  [2m | [22m  [36m2.67 kB[39m[2m | [22m
+[32mspec-app-core-utils-fecha-documento.util.js[39m                            [2m | [22m[2mspec-app-core-utils-fecha-documento.util[22m                            [2m | [22m  [36m2.62 kB[39m[2m | [22m
+[32mchunk-YSONRKKZ.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m2.42 kB[39m[2m | [22m
+[32mchunk-5HZXJDBG.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m2.35 kB[39m[2m | [22m
+[32mchunk-5EATJDNB.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m2.21 kB[39m[2m | [22m
+[32mspec-app-core-services-auth.service.js[39m                                 [2m | [22m[2mspec-app-core-services-auth.service[22m                                 [2m | [22m  [36m2.00 kB[39m[2m | [22m
+[32mspec-app-core-security-role-permissions.js[39m                             [2m | [22m[2mspec-app-core-security-role-permissions[22m                             [2m | [22m  [36m1.99 kB[39m[2m | [22m
+[32mchunk-WDFWQ76V.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.83 kB[39m[2m | [22m
+[32mchunk-IAAC7UOD.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.82 kB[39m[2m | [22m
+[32mchunk-XD5YZ6TX.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.63 kB[39m[2m | [22m
+[32mchunk-DLFWKA7P.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.61 kB[39m[2m | [22m
+[32mchunk-P3FTMN3O.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.59 kB[39m[2m | [22m
+[32mspec-app-core-feedback-confirmacion-accion.service.js[39m                  [2m | [22m[2mspec-app-core-feedback-confirmacion-accion.service[22m                  [2m | [22m  [36m1.52 kB[39m[2m | [22m
+[32mchunk-XXBWTNSE.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.44 kB[39m[2m | [22m
+[32mspec-app-pages-insumos-insumos.js[39m                                      [2m | [22m[2mspec-app-pages-insumos-insumos[22m                                      [2m | [22m  [36m1.41 kB[39m[2m | [22m
+[32mspec-app-core-forms-professional-forms.js[39m                              [2m | [22m[2mspec-app-core-forms-professional-forms[22m                              [2m | [22m  [36m1.39 kB[39m[2m | [22m
+[32mchunk-ZADCYPTT.js[39m                                                      [2m | [22m[2m-[22m                                                                   [2m | [22m  [36m1.32 kB[39m[2m | [22m
+[32minit-testbed.js[39m                                                        [2m | [22m[2minit-testbed[22m                                                        [2m | [22m  [36m1.21 kB[39m[2m | [22m
+[32mvitest-mock-patch.js[39m                                                   [2m | [22m[2mvitest-mock-patch[22m                                                   [2m | [22m[36m974 bytes[39m[2m | [22m
+
+[1m [22m                                                                      [2m | [22m[1mInitial total[22m                                                       [2m | [22m  [1m1.35 MB[22m
+
+Application bundle generation complete. [4.611 seconds] - 2026-08-15T15:50:52.355Z
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mD:/PROYECTO/FRONTEND[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/permission.service.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 90[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/state/auth.state.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/dashboard/dashboard.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 132[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/api.service.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 150[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/reportes/reportes.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 175[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/utils/fecha-documento.util.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 58[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/guards/guards.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/domain-services.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 46[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/feedback/confirmacion-accion.service.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/interceptors/interceptors.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 218[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/security/role-permissions.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/compras-comprobantes/compras-comprobantes.logic.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 151[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/inventario-despachos/inventario-despachos-flujo.logic.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 177[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/usuarios/usuarios.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/services/auth.service.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/observability-pages.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 378[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/forms/professional-forms.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/pedidos/pedidos.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 263[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/forms/form-error-messages.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/proveedores/proveedores.spec.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/almacenes/almacenes.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/app.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 852[2mms[22m[39m
+     [33m[2m✓[22m[39m should create the app [33m 804[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/insumos/insumos.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/core/forms/professional-forms-extra.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/inventario-despachos/inventario-despachos.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 453[2mms[22m[39m
+     [33m[2m✓[22m[39m pestana debe mostrar Movimientos de inventario [33m 444[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/auth/login/login.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+ [32m✓[39m [30m[43m frontend [49m[39m src/app/pages/compras-comprobantes/compras-comprobantes.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 558[2mms[22m[39m
+     [33m[2m✓[22m[39m muestra el nombre del archivo seleccionado [33m 500[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m27 passed[39m[22m[90m (27)[39m
+[2m      Tests [22m [1m[32m149 passed[39m[22m[90m (149)[39m
+[2m   Start at [22m 11:50:52
+[2m   Duration [22m 6.35s[2m (transform 4.41s, setup 19.62s, import 11.23s, tests 4.16s, environment 68.87s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   26.27 |    36.07 |   48.29 |   31.09 |                   
+ app               |    15.9 |    38.46 |   14.28 |     5.4 |                   
+  app.html         |     100 |      100 |     100 |     100 |                   
+  app.ts           |   13.95 |    38.46 |   14.28 |    2.77 | 15-83             
+ app/core/feedback |   57.77 |    95.45 |   71.42 |   57.57 |                   
+  ...omponent.html |    5.26 |       50 |       0 |    7.14 | 2-29              
+  ....component.ts |    87.5 |      100 |      50 |      75 | 17                
+  ...on.service.ts |     100 |      100 |     100 |     100 |                   
+ app/core/forms    |   62.12 |     53.6 |   84.33 |    60.5 |                   
+  ....directive.ts |    2.66 |        5 |       0 |    1.36 | 24-187            
+  ...r-messages.ts |   66.44 |     49.6 |   94.59 |      66 | ...87,312,348-352 
+  ...onal-forms.ts |   99.02 |    86.53 |     100 |    98.9 | 130               
+ app/core/guards   |     100 |    83.33 |     100 |     100 |                   
+  auth.guard.ts    |     100 |      100 |     100 |     100 |                   
+  ...sion.guard.ts |     100 |    83.33 |     100 |     100 | 6                 
+  role.guard.ts    |     100 |       75 |     100 |     100 | 9                 
+ ...e/interceptors |   78.78 |       55 |     100 |   78.12 |                   
+  ...nterceptor.ts |     100 |       75 |     100 |     100 | 23                
+  ...nterceptor.ts |   74.54 |    53.57 |     100 |   74.07 | ...,81,95,105,174 
+ app/core/security |     100 |       50 |     100 |     100 |                   
+  ...ermissions.ts |     100 |       50 |     100 |     100 | 201               
+ app/core/services |   84.54 |     69.9 |   89.25 |   87.73 |                   
+  ...es.service.ts |    92.3 |       60 |     100 |     100 | 8                 
+  api.service.ts   |   94.11 |    91.66 |     100 |   92.85 | 35                
+  ...ia.service.ts |   88.88 |       60 |     100 |     100 | 12                
+  auth.service.ts  |    90.9 |       60 |     100 |     100 | 11                
+  ...es.service.ts |   94.44 |       60 |     100 |     100 | 12                
+  ...rd.service.ts |      90 |       60 |     100 |     100 | 49                
+  ...os.service.ts |   61.53 |       60 |   55.55 |      60 | 15,31-35,43       
+  ...os.service.ts |   94.11 |       60 |     100 |     100 | 17                
+  menu.service.ts  |      20 |    27.27 |       0 |    8.33 | 11-125            
+  ...es.service.ts |   93.33 |    71.42 |     100 |     100 | 9                 
+  ...os.service.ts |   93.33 |       60 |     100 |     100 | 15                
+  ...on.service.ts |     100 |      100 |     100 |     100 |                   
+  ...es.service.ts |   58.33 |       60 |      50 |   55.55 | 16-20,28-32       
+  ...os.service.ts |   92.85 |       60 |     100 |     100 | 8                 
+ app/core/state    |   92.06 |    88.88 |     100 |   91.37 |                   
+  auth.state.ts    |   92.06 |    88.88 |     100 |   91.37 | ...19-120,158,164 
+ app/core/utils    |   95.77 |    79.36 |     100 |   95.65 |                   
+  ...tidad.util.ts |     100 |     90.9 |     100 |     100 | 93-97             
+  fecha.util.ts    |   94.87 |    79.41 |     100 |   94.73 | 14,20             
+  roles.util.ts    |    90.9 |    42.85 |     100 |    90.9 | 85                
+ ...s/admin-layout |   29.28 |    34.78 |      75 |   30.97 |                   
+  ...n-layout.html |       0 |        0 |       0 |       0 | 1-138             
+  admin-layout.ts  |   78.84 |    44.44 |   88.23 |   85.36 | 83,90-93,103      
+ ...-layout/navbar |   34.89 |    43.54 |      64 |   36.88 |                   
+  navbar.html      |       0 |        0 |       0 |       0 | 1-108             
+  navbar.ts        |   68.42 |    48.21 |      80 |   69.23 | ...30,137,144,169 
+ ...ages/auditoria |   15.11 |    25.67 |   36.36 |   16.62 |                   
+  auditoria.html   |       0 |        0 |       0 |       0 | 1-437             
+  auditoria.ts     |    38.8 |    28.78 |   44.44 |   37.69 | ...34,344,363-515 
+ ...ges/auth/login |   23.47 |    42.85 |   72.72 |   21.78 |                   
+  login.html       |       0 |        0 |       0 |       0 | 1-163             
+  login.ts         |   96.42 |       75 |     100 |     100 | 22                
+ ...s-comprobantes |   17.14 |     25.4 |   27.14 |   23.06 |                   
+  ...robantes.html |    3.89 |        0 |       0 |       5 | ...5-389,396-1145 
+  ...mprobantes.ts |    40.2 |    29.02 |   35.51 |    40.6 | ...2365,2376-2379 
+ ...ages/dashboard |   11.35 |       60 |   77.77 |   15.97 |                   
+  dashboard.html   |       0 |        0 |       0 |       0 | 1-226             
+  dashboard.ts     |   92.85 |    71.42 |    87.5 |   95.83 | 29                
+ ...ario-despachos |   26.64 |    41.86 |   42.27 |   32.78 |                   
+  ...os-flujo.html |   10.63 |    22.64 |       0 |   13.19 | ...8-595,602-1317 
+  ...chos-flujo.ts |      56 |     44.7 |   52.84 |   56.52 | ...1778,1788-1792 
+ ...notificaciones |   25.32 |    28.57 |      50 |   28.35 |                   
+  ...caciones.html |       0 |        0 |       0 |       0 | 1-372             
+  ...ficaciones.ts |   56.19 |    36.58 |    62.5 |   58.82 | ...63,374,385-444 
+ app/pages/pedidos |   23.88 |    37.16 |   46.02 |   29.82 |                   
+  pedidos.html     |       0 |        0 |       0 |       0 | 1-850             
+  pedidos.ts       |   55.22 |    43.87 |   57.85 |   55.29 | ...1416,1437-1495 
+ app/pages/perfil  |   15.97 |    18.29 |      60 |   15.89 |                   
+  perfil.html      |       0 |        0 |       0 |       0 | 1-181             
+  perfil.ts        |   71.05 |     37.5 |   64.28 |   70.58 | ...,88-94,104-108 
+ ...pages/reportes |   21.56 |    21.23 |   26.38 |   23.52 |                   
+  reportes.html    |       0 |        0 |       0 |       0 | 1-357             
+  reportes.ts      |   32.06 |    21.91 |   28.85 |   33.26 | ...1339,1347-1626 
+ ...roles-permisos |   14.49 |    59.09 |   48.27 |   16.33 |                   
+  ...permisos.html |       0 |        0 |       0 |       0 | 1-274             
+  ...s-permisos.ts |   60.93 |    67.24 |   58.33 |   62.26 | ...48-163,191-199 
+ environments      |     100 |      100 |     100 |     100 |                   
+  environment.ts   |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------

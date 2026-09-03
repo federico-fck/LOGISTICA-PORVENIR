@@ -1,0 +1,140 @@
+<div class="min-h-screen bg-slate-950 text-slate-100">
+  <aside class="fixed left-0 top-0 h-screen w-72 border-r border-slate-800 bg-slate-950 text-white">
+    <div class="flex h-24 items-center gap-4 border-b border-slate-800 bg-gradient-to-r from-slate-950 to-slate-900 px-6">
+      <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-cyan-400 to-blue-700 text-2xl shadow-xl shadow-blue-900/40">
+        ⛏️
+      </div>
+
+      <div>
+        <h2 class="text-base font-black leading-tight tracking-wide text-white">
+          LOGÍSTICA
+        </h2>
+        <p class="text-sm font-semibold text-cyan-300">
+          PORVENIR R.L.
+        </p>
+        <p class="mt-0.5 text-[11px] text-slate-500">
+          Operación minera
+        </p>
+      </div>
+    </div>
+
+    <nav class="h-[calc(100vh-96px)] overflow-y-auto px-4 py-5">
+      @for (grupo of menu(); track grupo.grupo) {
+        <div class="mb-6">
+          <p class="mb-2 px-3 text-xs font-bold uppercase tracking-widest text-slate-500">
+            {{ grupo.grupo }}
+          </p>
+
+          <div class="space-y-1">
+            @for (item of grupo.items; track item.ruta) {
+              <a
+                [routerLink]="item.ruta"
+                routerLinkActive="active-menu bg-blue-600 text-white shadow-lg shadow-blue-900/40"
+                class="sidebar-nav-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              >
+                <span class="sidebar-nav-icon" aria-hidden="true">{{ item.icono }}</span>
+                <span>{{ item.titulo }}</span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </nav>
+  </aside>
+
+  <main class="ml-72 min-h-screen bg-slate-100">
+    <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-8 py-4 backdrop-blur">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="hidden h-12 w-1 rounded-full bg-blue-600 md:block"></div>
+
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 class="text-2xl font-black tracking-tight text-slate-950">
+                Cooperativa Minera El Porvenir R.L.
+              </h1>
+
+              <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                Sistema logístico
+              </span>
+            </div>
+
+            <p class="mt-1 text-sm font-medium text-slate-500">
+              Gestión logística de insumos, inventario, pedidos, compras y despachos para operación mina
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <a
+            routerLink="/notificaciones"
+            class="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-xl text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+            title="Notificaciones"
+          >
+            🔔
+            @if (totalNoLeidas() > 0) {
+              <span class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white ring-2 ring-white">
+                {{ totalNoLeidas() }}
+              </span>
+            }
+          </a>
+
+          <div class="relative">
+            <button
+              type="button"
+              (click)="alternarMenuUsuario()"
+              class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 transition hover:border-blue-200 hover:bg-blue-50"
+            >
+              <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 text-sm font-black text-white shadow-md">
+                {{ iniciales() }}
+              </div>
+
+              <div class="text-left">
+                <p class="text-sm font-black text-slate-900">
+                  {{ usuario()?.nombreCompleto || usuario()?.nombreUsuario }}
+                </p>
+                <p class="text-xs font-bold uppercase tracking-wide text-blue-600">
+                  {{ rolNombreActual() || 'Sin rol' }}
+                </p>
+              </div>
+
+              <span class="text-xs text-slate-500">
+                @if (menuUsuarioAbierto()) {
+                  ▲
+                } @else {
+                  ▼
+                }
+              </span>
+            </button>
+
+            @if (menuUsuarioAbierto()) {
+              <div class="absolute right-0 mt-3 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10">
+                <button
+                  type="button"
+                  (click)="irPerfil()"
+                  class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                >
+                  <span>👤</span>
+                  <span>Perfil</span>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="cerrarSesion()"
+                  class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
+                >
+                  <span>🚪</span>
+                  <span>Cerrar sesión</span>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="p-8">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>

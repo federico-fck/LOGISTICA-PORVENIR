@@ -1,0 +1,111 @@
+<header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+  <div class="flex items-center justify-between gap-4 px-8 py-4">
+    <div class="border-l-4 border-blue-600 pl-5">
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-2xl font-black tracking-tight text-slate-950">
+          Cooperativa Minera El Porvenir R.L.
+        </h1>
+
+        <span class="rounded-full bg-blue-50 px-4 py-1 text-xs font-black text-blue-700">
+          Sistema logístico
+        </span>
+      </div>
+
+      <p class="mt-1 text-sm font-semibold text-slate-500">
+        Gestión logística de insumos, inventario, pedidos, compras y despachos para operación mina
+      </p>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <button
+        type="button"
+        (click)="irNotificaciones()"
+        class="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-white text-2xl shadow-sm transition hover:bg-slate-50"
+        title="Notificaciones"
+      >
+        🔔
+
+        @if (totalNoLeidas() > 0) {
+          <span class="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full border-2 border-white bg-red-600 px-1 text-xs font-black text-white">
+            {{ totalNoLeidas() }}
+          </span>
+        }
+      </button>
+
+      <div class="relative">
+        <button
+          type="button"
+          (click)="alternarMenuUsuario()"
+          class="flex min-w-72 items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-left shadow-sm transition hover:bg-white"
+        >
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-lg font-black text-white shadow-lg shadow-blue-600/20">
+            {{ iniciales() }}
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-black text-slate-950">
+              {{ nombreUsuario() }}
+            </p>
+
+            <p class="mt-1 text-xs font-black uppercase tracking-wide text-blue-600">
+              {{ rolUsuario() }}
+            </p>
+          </div>
+
+          <span class="text-slate-500">
+            ▼
+          </span>
+        </button>
+
+        @if (menuUsuarioAbierto()) {
+          <div class="absolute right-0 mt-3 w-72 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+            <div class="border-b border-slate-100 p-5">
+              <p class="text-sm font-black text-slate-950">
+                {{ nombreUsuario() }}
+              </p>
+
+              <p class="mt-1 text-xs font-black uppercase tracking-wide text-blue-600">
+                {{ rolUsuario() }}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              (click)="irPerfil()"
+              class="flex w-full items-center gap-3 px-5 py-4 text-left text-sm font-black text-slate-700 transition hover:bg-slate-50"
+            >
+              <span>👤</span>
+              <span>Perfil</span>
+            </button>
+
+            <button
+              type="button"
+              (click)="irNotificaciones()"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-black text-slate-700 transition hover:bg-slate-50"
+            >
+              <span class="flex items-center gap-3">
+                <span>🔔</span>
+                <span>Notificaciones</span>
+              </span>
+
+              @if (totalNoLeidas() > 0) {
+                <span class="rounded-full bg-red-600 px-2 py-1 text-xs font-black text-white">
+                  {{ totalNoLeidas() }}
+                </span>
+              }
+            </button>
+
+            <button
+              type="button"
+              (click)="cerrarSesion()"
+              class="flex w-full items-center gap-3 border-t border-slate-100 px-5 py-4 text-left text-sm font-black text-red-600 transition hover:bg-red-50"
+            >
+              <span>🚪</span>
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</header>

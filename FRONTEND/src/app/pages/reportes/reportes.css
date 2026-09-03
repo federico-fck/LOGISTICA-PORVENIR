@@ -1,0 +1,109 @@
+:host input,
+:host select,
+:host textarea {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  font-weight: 700;
+  color-scheme: light;
+}
+
+:host input::placeholder,
+:host textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+:host table {
+  border-collapse: collapse;
+}
+
+:host .report-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+:host .report-filter-control {
+  min-height: 2.75rem;
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 0.55rem 0.85rem;
+  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+:host .report-filter-control:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px #dbeafe;
+}
+
+@media print {
+  :host {
+    display: block;
+    background: #ffffff !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .reportes-page {
+    background: #ffffff !important;
+  }
+
+  .reporte-imprimible {
+    padding: 0 !important;
+  }
+
+  table {
+    font-size: 11px !important;
+  }
+
+  th,
+  td {
+    padding: 8px !important;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+}
+
+
+/* ======================================================
+   OCULTAR RESUMEN GENERAL EN PDF / IMPRESIÓN
+   ====================================================== */
+
+@media print {
+  .resumen-general,
+  .resumen-reporte,
+  .summary-grid,
+  .report-summary,
+  .stats-grid,
+  .cards-resumen,
+  .tarjetas-resumen,
+  .reporte-resumen,
+  .print-summary,
+  .general-summary {
+    display: none !important;
+  }
+
+  h2:has(+ .summary-grid),
+  h2:has(+ .report-summary),
+  h2:has(+ .stats-grid),
+  h2:has(+ .cards-resumen),
+  h2:has(+ .tarjetas-resumen) {
+    display: none !important;
+  }
+}

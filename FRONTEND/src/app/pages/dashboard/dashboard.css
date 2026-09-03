@@ -1,0 +1,109 @@
+:host .dashboard-bottom-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+}
+
+@media (min-width: 1280px) {
+  :host .dashboard-bottom-grid {
+    grid-template-columns: minmax(0, 3.25fr) minmax(260px, 0.75fr);
+  }
+}
+
+:host .dashboard-pedidos-card,
+:host .dashboard-stock-card {
+  min-width: 0;
+}
+
+:host .dashboard-pedidos-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+:host .dashboard-pedidos-table {
+  width: 100% !important;
+  min-width: 980px !important;
+  table-layout: fixed !important;
+}
+
+:host .dashboard-pedidos-table th,
+:host .dashboard-pedidos-table td {
+  padding: 12px 8px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  line-height: 1.25 !important;
+}
+
+:host .dashboard-pedidos-table td:first-child,
+:host .dashboard-pedidos-table td:nth-child(2),
+:host .dashboard-pedidos-table td:nth-child(3),
+:host .dashboard-pedidos-table td:nth-child(4),
+:host .dashboard-pedidos-table td:nth-child(5),
+:host .dashboard-pedidos-table td:nth-child(7) {
+  overflow-wrap: normal !important;
+}
+
+:host .dashboard-col-numero {
+  width: 16%;
+}
+
+:host .dashboard-col-fecha {
+  width: 15%;
+}
+
+:host .dashboard-col-tipo {
+  width: 10%;
+}
+
+:host .dashboard-col-prioridad {
+  width: 10%;
+}
+
+:host .dashboard-col-estado {
+  width: 15%;
+}
+
+:host .dashboard-col-solicitante {
+  width: 20%;
+}
+
+:host .dashboard-col-area {
+  width: 14%;
+}
+
+:host .dashboard-pedido-pill {
+  display: inline-flex !important;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.15 !important;
+  text-align: center;
+}
+
+:host .dashboard-stock-card {
+  padding: 20px !important;
+}
+
+:host .dashboard-stock-card h3 {
+  font-size: 1.05rem !important;
+}
+
+:host .dashboard-stock-card .space-y-3 {
+  display: grid;
+  gap: 10px;
+}
+
+:host .dashboard-stock-card .space-y-3 > * {
+  margin: 0 !important;
+}
+
+:host .dashboard-stock-card .rounded-2xl {
+  border-radius: 14px !important;
+  padding: 12px !important;
+}

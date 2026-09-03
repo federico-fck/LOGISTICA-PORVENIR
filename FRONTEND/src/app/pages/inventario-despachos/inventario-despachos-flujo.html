@@ -1,0 +1,1319 @@
+<div class="mb-8 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Inventario y Despachos</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Control de stock, ajustes, transferencias, devoluciones y despachos formales.
+    </p>
+  </div>
+
+  <div class="flex flex-wrap gap-3">
+    <button
+      type="button"
+      (click)="cargarDatos()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Actualizar
+    </button>
+
+    @if (tienePermiso('inventario.ajustar')) {
+      <button
+        type="button"
+        (click)="abrirAjuste()"
+        class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+      >
+        + Ajuste de inventario
+      </button>
+    }
+
+    @if (tienePermiso('inventario.transferir')) {
+      <button
+        type="button"
+        (click)="abrirTransferencia()"
+        class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition hover:bg-slate-800"
+      >
+        + Transferencia
+      </button>
+    }
+
+    @if (tienePermiso('inventario.devolver')) {
+      <button
+        type="button"
+        (click)="abrirDevolucion()"
+        class="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
+      >
+        + Devolucion
+      </button>
+    }
+
+    @if (tienePermiso('despachos.crear')) {
+      <button
+        type="button"
+        (click)="abrirDespacho()"
+        class="rounded-2xl bg-cyan-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-cyan-600/20 transition hover:bg-cyan-700"
+      >
+        + Generar despacho
+      </button>
+    }
+  </div>
+</div>
+
+@if (error() && modoModal() === 'ninguno') {
+  <div
+    class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700"
+  >
+    {{ error() }}
+  </div>
+}
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="border-b border-slate-200 p-6">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap gap-2">
+        @if (puedeVerTab('inventario')) {
+          <button
+            type="button"
+            (click)="cambiarTab('inventario')"
+            class="rounded-2xl px-4 py-2 text-sm font-black transition"
+            [class]="
+              tabActual() === 'inventario'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            "
+          >
+            Inventario
+          </button>
+        }
+
+        @if (puedeVerTab('stock')) {
+          <button
+            type="button"
+            (click)="cambiarTab('stock')"
+            class="rounded-2xl px-4 py-2 text-sm font-black transition"
+            [class]="
+              tabActual() === 'stock'
+                ? 'bg-red-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            "
+          >
+            Stock critico
+          </button>
+        }
+
+        @if (puedeVerTab('movimientos')) {
+          <button
+            type="button"
+            (click)="cambiarTab('movimientos')"
+            class="rounded-2xl px-4 py-2 text-sm font-black transition"
+            [class]="
+              tabActual() === 'movimientos'
+                ? 'bg-green-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            "
+          >
+            Movimientos de inventario
+          </button>
+        }
+
+        @if (puedeVerTab('despachos')) {
+          <button
+            type="button"
+            (click)="cambiarTab('despachos')"
+            class="rounded-2xl px-4 py-2 text-sm font-black transition"
+            [class]="
+              tabActual() === 'despachos'
+                ? 'bg-cyan-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            "
+          >
+            Despachos
+          </button>
+        }
+      </div>
+
+      <div class="w-full lg:w-96">
+        <input
+          type="text"
+          [value]="busqueda()"
+          (input)="cambiarBusqueda($event)"
+          class="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+          placeholder="Buscar en el modulo actual..."
+        />
+      </div>
+    </div>
+
+    <div class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      @if (tabActual() === 'inventario') {
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <select
+            [value]="filtroInventarioAlmacen()"
+            (change)="filtroInventarioAlmacen.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-600"
+            aria-label="Filtrar inventario por almacen"
+          >
+            <option value="">Todos los almacenes</option>
+            @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+              <option [value]="almacen.idAlmacen">
+                {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+              </option>
+            }
+          </select>
+          <select
+            [value]="filtroInventarioEstado()"
+            (change)="filtroInventarioEstado.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-blue-600"
+            aria-label="Filtrar inventario por estado"
+          >
+            <option value="">Todos los estados</option>
+            <option value="DISPONIBLE">DISPONIBLE</option>
+            <option value="STOCK_BAJO">STOCK_BAJO</option>
+            <option value="SIN_STOCK">SIN_STOCK</option>
+          </select>
+          <button
+            type="button"
+            (click)="limpiarFiltros()"
+            class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-100"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
+
+      @if (tabActual() === 'stock') {
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <select
+            [value]="filtroStockAlmacen()"
+            (change)="filtroStockAlmacen.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-red-600"
+            aria-label="Filtrar stock critico por almacen"
+          >
+            <option value="">Todos los almacenes</option>
+            @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+              <option [value]="almacen.idAlmacen">
+                {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+              </option>
+            }
+          </select>
+          <select
+            [value]="filtroStockEstado()"
+            (change)="filtroStockEstado.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-red-600"
+            aria-label="Filtrar stock critico por estado"
+          >
+            <option value="">Todos los estados</option>
+            <option value="STOCK_BAJO">STOCK_BAJO</option>
+            <option value="STOCK_CRITICO">STOCK_CRITICO</option>
+            <option value="SIN_STOCK">SIN_STOCK</option>
+          </select>
+          <button
+            type="button"
+            (click)="limpiarFiltros()"
+            class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-100"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
+
+      @if (tabActual() === 'movimientos') {
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-6">
+          <select
+            [value]="filtroMovimientoPeriodo()"
+            (change)="filtroMovimientoPeriodo.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-green-600"
+            aria-label="Periodo de movimientos"
+          >
+            <option value="todos">Todos</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Esta semana</option>
+            <option value="mes">Este mes</option>
+            <option value="anio">Este año</option>
+          </select>
+          <label class="text-xs font-bold text-slate-500">
+            Fecha desde
+            <input
+              type="date"
+              [value]="filtroMovimientoDesde()"
+              (change)="filtroMovimientoDesde.set($any($event.target).value)"
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-green-600"
+            />
+          </label>
+          <label class="text-xs font-bold text-slate-500">
+            Fecha hasta
+            <input
+              type="date"
+              [value]="filtroMovimientoHasta()"
+              (change)="filtroMovimientoHasta.set($any($event.target).value)"
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-green-600"
+            />
+          </label>
+          <select
+            [value]="filtroMovimientoTipo()"
+            (change)="filtroMovimientoTipo.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-green-600"
+            aria-label="Tipo de movimiento"
+          >
+            <option value="">Todos los tipos</option>
+            @for (tipo of tiposMovimientoDisponibles(); track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+            }
+          </select>
+          <select
+            [value]="filtroMovimientoAlmacen()"
+            (change)="filtroMovimientoAlmacen.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-green-600"
+            aria-label="Almacen del movimiento"
+          >
+            <option value="">Todos los almacenes</option>
+            @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+              <option [value]="almacen.idAlmacen">{{ almacen.nombreAlmacen }}</option>
+            }
+          </select>
+          <button
+            type="button"
+            (click)="limpiarFiltros()"
+            class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-100"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
+
+      @if (tabActual() === 'despachos') {
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-7">
+          <select
+            [value]="filtroDespachoPeriodo()"
+            (change)="filtroDespachoPeriodo.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-cyan-600"
+            aria-label="Periodo de despachos"
+          >
+            <option value="todos">Todos</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Esta semana</option>
+            <option value="mes">Este mes</option>
+            <option value="anio">Este año</option>
+          </select>
+          <label class="text-xs font-bold text-slate-500">
+            Fecha desde
+            <input
+              type="date"
+              [value]="filtroDespachoDesde()"
+              (change)="filtroDespachoDesde.set($any($event.target).value)"
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-cyan-600"
+            />
+          </label>
+          <label class="text-xs font-bold text-slate-500">
+            Fecha hasta
+            <input
+              type="date"
+              [value]="filtroDespachoHasta()"
+              (change)="filtroDespachoHasta.set($any($event.target).value)"
+              class="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-cyan-600"
+            />
+          </label>
+          <select
+            [value]="filtroDespachoEstado()"
+            (change)="filtroDespachoEstado.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-cyan-600"
+            aria-label="Estado del despacho"
+          >
+            <option value="">Todos los estados</option>
+            @for (estado of estadosDespachoDisponibles(); track estado) {
+              <option [value]="estado">{{ estado }}</option>
+            }
+          </select>
+          <select
+            [value]="filtroDespachoAlmacen()"
+            (change)="filtroDespachoAlmacen.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-cyan-600"
+            aria-label="Almacen origen"
+          >
+            <option value="">Todos los almacenes</option>
+            @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+              <option [value]="almacen.idAlmacen">{{ almacen.nombreAlmacen }}</option>
+            }
+          </select>
+          <select
+            [value]="filtroDespachoArea()"
+            (change)="filtroDespachoArea.set($any($event.target).value)"
+            class="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 outline-none focus:border-cyan-600"
+            aria-label="Area solicitante"
+          >
+            <option value="">Todas las areas</option>
+            @for (area of areasDisponibles(); track area.idArea) {
+              <option [value]="area.idArea">
+                {{ area.nombreArea }}
+              </option>
+            }
+          </select>
+          <button
+            type="button"
+            (click)="limpiarFiltros()"
+            class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-black text-slate-700 hover:bg-slate-100"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div
+      class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700"
+    >
+      Cargando informacion...
+    </div>
+  }
+
+  @if (tabActual() === 'inventario') {
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[860px] text-left text-sm">
+        <thead>
+          <tr
+            class="border-b-2 border-slate-300 bg-slate-50 text-xs uppercase tracking-widest text-slate-500"
+          >
+            <th class="px-6 py-4">Insumo</th>
+            <th class="px-6 py-4">Almacen</th>
+            <th class="px-6 py-4">Stock fisico</th>
+            <th class="px-6 py-4">Reservado</th>
+            <th class="px-6 py-4">Disponible</th>
+            <th class="px-6 py-4">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of inventarioFiltrado(); track idInventario(item)) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4">
+                <p class="font-black text-slate-950">{{ nombreInsumo(item) }}</p>
+                <p class="text-xs font-semibold text-slate-500">{{ codigoInsumo(item) }}</p>
+              </td>
+              <td class="px-6 py-4">
+                <p class="font-bold text-slate-700">{{ nombreAlmacen(item) }}</p>
+                <p class="text-xs text-slate-500">{{ codigoAlmacen(item) }}</p>
+              </td>
+              <td class="px-6 py-4 font-black text-slate-900">{{ stockFisico(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ stockReservado(item) }}</td>
+              <td class="px-6 py-4 font-black text-blue-700">{{ stockDisponible(item) }}</td>
+              <td class="px-6 py-4">
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-black"
+                  [class]="claseStock(estadoStock(item))"
+                >
+                  {{ estadoStock(item) }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No se encontraron registros de inventario.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tabActual() === 'stock') {
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[920px] text-left text-sm">
+        <thead>
+          <tr
+            class="border-b-2 border-slate-300 bg-slate-50 text-xs uppercase tracking-widest text-slate-500"
+          >
+            <th class="px-6 py-4">Insumo</th>
+            <th class="px-6 py-4">Almacen</th>
+            <th class="px-6 py-4">Stock disponible</th>
+            <th class="px-6 py-4">Stock minimo</th>
+            <th class="px-6 py-4">Diferencia</th>
+            <th class="px-6 py-4">Estado</th>
+            <th class="px-6 py-4 text-right">Accion</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of stockFiltrado(); track idInventario(item) || codigoInsumo(item)) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4">
+                <p class="font-black text-slate-950">{{ nombreInsumo(item) }}</p>
+                <p class="text-xs font-semibold text-slate-500">{{ codigoInsumo(item) }}</p>
+              </td>
+              <td class="px-6 py-4 text-slate-600">{{ nombreAlmacen(item) }}</td>
+              <td class="px-6 py-4 font-black text-red-700">{{ stockDisponible(item) }}</td>
+              <td class="px-6 py-4 text-slate-700">{{ stockMinimo(item) }}</td>
+              <td class="px-6 py-4 font-bold text-slate-700">{{ diferenciaStock(item) }}</td>
+              <td class="px-6 py-4">
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-black"
+                  [class]="claseStock(estadoStock(item))"
+                >
+                  {{ estadoStock(item) }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex justify-end">
+                  @if (tienePermiso('inventario.ver_stock_critico')) {
+                    <button
+                      type="button"
+                      (click)="abrirDetalleStockCritico(item)"
+                      class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Ver detalle
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No hay insumos con stock critico.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tabActual() === 'movimientos') {
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[1120px] text-left text-sm">
+        <thead>
+          <tr
+            class="border-b-2 border-slate-300 bg-slate-50 text-xs uppercase tracking-widest text-slate-500"
+          >
+            <th class="px-6 py-4">Movimiento</th>
+            <th class="px-6 py-4">Insumo</th>
+            <th class="px-6 py-4">Almacen</th>
+            <th class="px-6 py-4">Cantidad</th>
+            <th class="px-6 py-4">Referencia</th>
+            <th class="px-6 py-4">Responsable</th>
+            <th class="px-6 py-4">Fecha</th>
+            <th class="px-6 py-4">Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of movimientosFiltrados(); track item.idMovimiento || item.id_movimiento) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4">
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-black"
+                  [class]="claseMovimiento(movimientoTipo(item))"
+                >
+                  {{ movimientoTipo(item) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 font-bold text-slate-900">{{ movimientoInsumo(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ movimientoAlmacen(item) }}</td>
+              <td class="px-6 py-4 font-black text-blue-700">{{ movimientoCantidad(item) }}</td>
+              <td class="px-6 py-4 font-bold text-slate-700">{{ referenciaMovimiento(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ usuarioResponsableMovimiento(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ fechaFormateada(movimientoFecha(item)) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ movimientoMotivo(item) }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No se encontraron movimientos.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (tabActual() === 'despachos') {
+    <div class="overflow-x-auto">
+      <table class="despachos-table w-full min-w-[1240px] text-left text-sm">
+        <colgroup>
+          <col class="despachos-col-despacho" />
+          <col class="despachos-col-pedido" />
+          <col class="despachos-col-area" />
+          <col class="despachos-col-solicitante" />
+          <col class="despachos-col-almacen" />
+          <col class="despachos-col-responsable" />
+          <col class="despachos-col-fecha" />
+          <col class="despachos-col-estado" />
+          <col class="despachos-col-detalle" />
+        </colgroup>
+        <thead>
+          <tr
+            class="border-b-2 border-slate-300 bg-slate-50 text-xs uppercase tracking-widest text-slate-500"
+          >
+            <th class="px-6 py-4">Despacho</th>
+            <th class="px-6 py-4">Pedido</th>
+            <th class="px-6 py-4">Area solicitante</th>
+            <th class="px-6 py-4">Solicitante</th>
+            <th class="px-6 py-4">Almacen origen</th>
+            <th class="px-6 py-4">Responsable</th>
+            <th class="px-6 py-4">Fecha</th>
+            <th class="px-6 py-4">Estado</th>
+            <th class="px-6 py-4 text-center">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of despachosFiltrados(); track idDespacho(item)) {
+            <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+              <td class="px-6 py-4 font-black text-slate-950">{{ numeroDespacho(item) }}</td>
+              <td class="px-6 py-4 text-slate-700">{{ numeroPedidoDespacho(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ areaSolicitanteDespacho(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ solicitanteDespacho(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ almacenOrigen(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ usuarioResponsableDespacho(item) }}</td>
+              <td class="px-6 py-4 text-slate-600">{{ fechaFormateada(fechaDespacho(item)) }}</td>
+              <td class="px-6 py-4">
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-black"
+                  [class]="claseDespacho(estadoDespacho(item))"
+                >
+                  {{ estadoDespacho(item) }}
+                </span>
+              </td>
+              <td class="despachos-detalle-cell px-6 py-4">
+                <div class="despachos-detalle-wrapper">
+                  @if (tienePermiso('despachos.detalle')) {
+                    <button
+                      type="button"
+                      (click)="abrirDetalleDespacho(item)"
+                      class="despachos-detalle-button rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-blue-100"
+                    >
+                      Ver detalle
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+                No se encontraron despachos.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (modoModal() !== 'ninguno') {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm"
+  >
+    <div
+      class="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl"
+    >
+      <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">
+            @if (modoModal() === 'ajuste') {
+              Registrar ajuste de inventario
+            } @else if (modoModal() === 'transferencia') {
+              Transferencia entre almacenes
+            } @else if (modoModal() === 'devolucion') {
+              Registrar devolucion
+            } @else if (modoModal() === 'despacho') {
+              Generar despacho
+            } @else if (modoModal() === 'detalle-stock-critico') {
+              Detalle de stock crítico
+            } @else {
+              Detalle de despacho
+            }
+          </h3>
+          <p class="mt-1 text-sm text-slate-500">
+            @if (modoModal() === 'ajuste') {
+              Use esta opcion solo para correcciones fisicas de inventario. Para entregas use
+              Generar despacho.
+            } @else if (modoModal() === 'despacho') {
+              Seleccione un pedido aprobado y confirme las cantidades a entregar.
+            } @else if (modoModal() === 'detalle-stock-critico') {
+              Estado actual y recomendación de reposición del registro seleccionado.
+            } @else {
+              Operacion formal de inventario con movimiento historico.
+            }
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+        >
+          X
+        </button>
+      </div>
+
+      @if (error() && modoModal() !== 'ninguno') {
+        <div
+          class="mx-6 mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700"
+        >
+          {{ error() }}
+        </div>
+      }
+
+      @if (modoModal() === 'ajuste') {
+        <form [formGroup]="formAjuste" (ngSubmit)="guardarAjuste()" autocomplete="off" class="p-6">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Insumo *</label>
+              <select
+                formControlName="idInsumo"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione insumo</option>
+                @for (insumo of insumos(); track insumo.idInsumo) {
+                  <option [value]="insumo.idInsumo">
+                    {{ insumo.codigoInterno }} - {{ insumo.nombreInsumo }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Almacen *</label>
+              <select
+                formControlName="idAlmacen"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione almacen</option>
+                @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+                  <option [value]="almacen.idAlmacen">
+                    {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Tipo de ajuste *</label>
+              <select
+                formControlName="tipoMovimiento"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                @for (tipo of tiposAjuste; track tipo) {
+                  <option [value]="tipo">{{ tipo }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Cantidad *</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                formControlName="cantidad"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Motivo *</label>
+              <select
+                formControlName="motivo"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione motivo</option>
+                @for (motivo of motivosAjusteInventario; track motivo) {
+                  <option [value]="motivo">{{ motivo }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Observaciones</label>
+              <textarea
+                formControlName="observaciones"
+                rows="3"
+                class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="cerrarModal()"
+              class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {{ guardando() ? 'Guardando...' : 'Registrar ajuste' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'transferencia') {
+        <form
+          [formGroup]="formTransferencia"
+          (ngSubmit)="guardarTransferencia()"
+          autocomplete="off"
+          class="p-6"
+        >
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Insumo *</label>
+              <select
+                formControlName="idInsumo"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione insumo</option>
+                @for (insumo of insumos(); track insumo.idInsumo) {
+                  <option [value]="insumo.idInsumo">
+                    {{ insumo.codigoInterno }} - {{ insumo.nombreInsumo }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Cantidad *</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                formControlName="cantidad"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Almacen origen *</label>
+              <select
+                formControlName="idAlmacenOrigen"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione origen</option>
+                @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+                  <option [value]="almacen.idAlmacen">
+                    {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Almacen destino *</label>
+              <select
+                formControlName="idAlmacenDestino"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione destino</option>
+                @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+                  <option [value]="almacen.idAlmacen">
+                    {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Motivo *</label>
+              <select
+                formControlName="motivo"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione motivo</option>
+                @for (motivo of motivosTransferenciaInventario; track motivo) {
+                  <option [value]="motivo">{{ motivo }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Observaciones</label>
+              <textarea
+                formControlName="observaciones"
+                rows="3"
+                class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="cerrarModal()"
+              class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white hover:bg-slate-800 disabled:opacity-60"
+            >
+              {{ guardando() ? 'Guardando...' : 'Registrar transferencia' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'devolucion') {
+        <form
+          [formGroup]="formDevolucion"
+          (ngSubmit)="guardarDevolucion()"
+          autocomplete="off"
+          class="p-6"
+        >
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Insumo *</label>
+              <select
+                formControlName="idInsumo"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione insumo</option>
+                @for (insumo of insumos(); track insumo.idInsumo) {
+                  <option [value]="insumo.idInsumo">
+                    {{ insumo.codigoInterno }} - {{ insumo.nombreInsumo }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Almacen destino *</label>
+              <select
+                formControlName="idAlmacenDestino"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione almacen</option>
+                @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+                  <option [value]="almacen.idAlmacen">
+                    {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Cantidad *</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                formControlName="cantidad"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700"
+                >Despacho relacionado</label
+              >
+              <select
+                formControlName="idDespacho"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Sin despacho relacionado</option>
+                @for (despacho of despachos(); track idDespacho(despacho)) {
+                  <option [value]="idDespacho(despacho)">
+                    {{ numeroDespacho(despacho) }} - {{ numeroPedidoDespacho(despacho) }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Motivo *</label>
+              <select
+                formControlName="motivo"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione motivo</option>
+                @for (motivo of motivosDevolucionInventario; track motivo) {
+                  <option [value]="motivo">{{ motivo }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="mb-2 block text-sm font-bold text-slate-700">Observaciones</label>
+              <textarea
+                formControlName="observaciones"
+                rows="3"
+                class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="cerrarModal()"
+              class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {{ guardando() ? 'Guardando...' : 'Registrar devolucion' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'despacho') {
+        <form
+          [formGroup]="formDespacho"
+          (ngSubmit)="guardarDespacho()"
+          autocomplete="off"
+          class="p-6"
+        >
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Pedido aprobado *</label>
+              <select
+                formControlName="idPedido"
+                (change)="seleccionarPedidoDespacho($event)"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione pedido</option>
+                @for (pedido of pedidosAprobados(); track pedido.idPedido) {
+                  <option [value]="pedido.idPedido">{{ labelPedidoAprobado(pedido) }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">Almacen origen *</label>
+              <select
+                formControlName="idAlmacenSalida"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione almacen</option>
+                @for (almacen of almacenesDisponibles(); track almacen.idAlmacen) {
+                  <option [value]="almacen.idAlmacen">
+                    {{ almacen.codigoAlmacen }} - {{ almacen.nombreAlmacen }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+
+          @if (pedidoSeleccionado(); as pedido) {
+            <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div>
+                  <p class="text-xs font-bold uppercase text-slate-400">Pedido</p>
+                  <p class="font-black text-slate-900">
+                    {{ pedido.codigoPedido || pedido.numeroPedido }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase text-slate-400">Area solicitante</p>
+                  <p class="font-black text-slate-900">{{ nombreAreaPedido(pedido) }}</p>
+                </div>
+                <div>
+                  <p class="text-xs font-bold uppercase text-slate-400">Solicitante</p>
+                  <p class="font-black text-slate-900">{{ nombreSolicitantePedido(pedido) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full min-w-[820px] text-left text-sm">
+                <thead>
+                  <tr
+                    class="border-b-2 border-slate-300 bg-slate-50 text-xs uppercase tracking-widest text-slate-500"
+                  >
+                    <th class="px-5 py-3">Insumo</th>
+                    <th class="px-5 py-3">Pendiente</th>
+                    <th class="px-5 py-3">Disponible para despacho</th>
+                    <th class="px-5 py-3">Cantidad a despachar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (detalle of pedido.detalles; track detalleDespachoKey(detalle)) {
+                    <tr class="border-b border-slate-100">
+                      <td class="px-5 py-3">
+                        <p class="font-black text-slate-950">{{ nombreDetallePedido(detalle) }}</p>
+                        <p class="text-xs font-semibold text-slate-500">
+                          {{ codigoDetallePedido(detalle) }}
+                        </p>
+                      </td>
+                      <td class="px-5 py-3 font-bold text-slate-700">
+                        {{ cantidadPendienteDetallePedido(detalle) }}
+                      </td>
+                      <td class="px-5 py-3 font-bold text-blue-700">
+                        {{ stockDisponibleDetallePedido(detalle) }}
+                      </td>
+                      <td class="px-5 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          [max]="cantidadPendienteDetallePedido(detalle)"
+                          [value]="cantidadesDespacho()[detalleDespachoKey(detalle)] || ''"
+                          (input)="actualizarCantidadDespacho(detalle, $event)"
+                          [class.campo-formulario-invalido]="cantidadDespachoInvalida(detalle)"
+                          class="modal-form-control w-36 rounded-xl px-3 py-2 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+                        />
+                        @if (cantidadDespachoInvalida(detalle)) {
+                          <p class="campo-error">{{ mensajeCantidadDespacho(detalle) }}</p>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (esDespachoParcialSeleccionado()) {
+              <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p class="text-sm font-black text-amber-900">Este despacho será parcial.</p>
+                <p class="mt-1 text-xs font-semibold text-amber-700">
+                  Debe explicar por qué se entrega una cantidad menor a la pendiente.
+                </p>
+              </div>
+            }
+          }
+
+          <div class="mt-5">
+            <label class="mb-2 block text-sm font-bold text-slate-700">
+              {{
+                esDespachoParcialSeleccionado()
+                  ? 'Motivo de la entrega parcial *'
+                  : 'Observaciones'
+              }}
+            </label>
+            <textarea
+              formControlName="observaciones"
+              rows="3"
+              [placeholder]="
+                esDespachoParcialSeleccionado()
+                  ? 'Ej.: Se entrega esta cantidad por stock disponible insuficiente; queda saldo pendiente.'
+                  : 'Observaciones generales del despacho'
+              "
+              class="modal-form-control w-full resize-none rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+            ></textarea>
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="cerrarModal()"
+              class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="rounded-2xl bg-cyan-600 px-5 py-3 text-sm font-black text-white hover:bg-cyan-700 disabled:opacity-60"
+            >
+              {{ guardando() ? 'Guardando...' : 'Confirmar despacho' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (modoModal() === 'detalle-stock-critico') {
+        @if (stockSeleccionado(); as stock) {
+          <div class="p-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Insumo</p>
+                <p class="mt-1 font-black text-slate-900">{{ nombreInsumo(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Código interno</p>
+                <p class="mt-1 font-black text-slate-900">{{ codigoInsumo(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Almacén</p>
+                <p class="mt-1 font-black text-slate-900">{{ nombreAlmacen(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Código almacén</p>
+                <p class="mt-1 font-black text-slate-900">{{ codigoAlmacen(stock) || 'Sin código' }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Stock físico</p>
+                <p class="mt-1 font-black text-slate-900">{{ stockFisico(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Reservado</p>
+                <p class="mt-1 font-black text-slate-900">{{ stockReservado(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-blue-50 p-4">
+                <p class="text-xs font-bold uppercase text-blue-500">Stock disponible</p>
+                <p class="mt-1 text-lg font-black text-blue-800">{{ stockDisponible(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Stock mínimo</p>
+                <p class="mt-1 font-black text-slate-900">{{ stockMinimo(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Diferencia</p>
+                <p class="mt-1 font-black text-slate-900">{{ diferenciaStock(stock) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Estado</p>
+                <span
+                  class="mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-black"
+                  [class]="claseStock(estadoStock(stock))"
+                >
+                  {{ estadoStock(stock) }}
+                </span>
+              </div>
+              @if (unidadMedidaStock(stock)) {
+                <div class="rounded-2xl bg-slate-50 p-4">
+                  <p class="text-xs font-bold uppercase text-slate-400">Unidad de medida</p>
+                  <p class="mt-1 font-black text-slate-900">{{ unidadMedidaStock(stock) }}</p>
+                </div>
+              }
+              @if (categoriaStock(stock)) {
+                <div class="rounded-2xl bg-slate-50 p-4">
+                  <p class="text-xs font-bold uppercase text-slate-400">Categoría</p>
+                  <p class="mt-1 font-black text-slate-900">{{ categoriaStock(stock) }}</p>
+                </div>
+              }
+              @if (ultimoMovimientoStock(stock)) {
+                <div class="rounded-2xl bg-slate-50 p-4">
+                  <p class="text-xs font-bold uppercase text-slate-400">Último movimiento</p>
+                  <p class="mt-1 font-black text-slate-900">
+                    {{ fechaFormateada(ultimoMovimientoStock(stock)) }}
+                  </p>
+                </div>
+              }
+            </div>
+
+            <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+              <p class="text-xs font-bold uppercase tracking-widest text-amber-600">
+                Recomendación automática
+              </p>
+              <p class="mt-1 text-lg font-black text-amber-900">{{ recomendacionStock(stock) }}</p>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+              <button
+                type="button"
+                (click)="cerrarModal()"
+                class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'detalle-despacho') {
+        @if (despachoSeleccionado(); as despacho) {
+          <div class="p-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Despacho</p>
+                <p class="font-black text-slate-900">{{ numeroDespacho(despacho) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Pedido</p>
+                <p class="font-black text-slate-900">{{ numeroPedidoDespacho(despacho) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Estado</p>
+                <p class="font-black text-slate-900">{{ estadoDespacho(despacho) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Area</p>
+                <p class="font-black text-slate-900">{{ areaSolicitanteDespacho(despacho) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Solicitante</p>
+                <p class="font-black text-slate-900">{{ solicitanteDespacho(despacho) }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Responsable</p>
+                <p class="font-black text-slate-900">{{ usuarioResponsableDespacho(despacho) }}</p>
+              </div>
+            </div>
+
+            @if (esDespachoParcial(despacho)) {
+              <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                <p class="text-xs font-bold uppercase tracking-widest text-amber-600">
+                  Motivo de la entrega parcial
+                </p>
+                <p class="mt-2 font-bold leading-relaxed text-amber-950">
+                  {{ motivoEntregaParcial(despacho) }}
+                </p>
+              </div>
+            }
+
+            <div class="mt-6 overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full min-w-[980px] text-left text-sm">
+                <thead>
+                  <tr
+                    class="border-b-2 border-slate-300 bg-slate-50 text-xs uppercase tracking-widest text-slate-500"
+                  >
+                    <th class="px-5 py-3">Codigo</th>
+                    <th class="px-5 py-3">Insumo</th>
+                    <th class="px-5 py-3">Solicitada</th>
+                    <th class="px-5 py-3">Pendiente antes</th>
+                    <th class="px-5 py-3">Entregada</th>
+                    <th class="px-5 py-3">Pendiente después</th>
+                    <th class="px-5 py-3">Observación del insumo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (detalle of detallesDespacho(despacho); track $index) {
+                    <tr class="border-b border-slate-100">
+                      <td class="px-5 py-3 font-bold text-slate-900">
+                        {{ detalleCodigo(detalle) }}
+                      </td>
+                      <td class="px-5 py-3 text-slate-700">{{ detalleInsumo(detalle) }}</td>
+                      <td class="px-5 py-3 font-bold text-slate-700">
+                        {{ detalleCantidadSolicitada(detalle) }}
+                      </td>
+                      <td class="px-5 py-3 font-bold text-slate-700">
+                        {{ detalleCantidadPendienteAntes(detalle) }}
+                      </td>
+                      <td class="px-5 py-3 font-black text-blue-700">
+                        {{ detalleCantidadEntregada(detalle) }}
+                      </td>
+                      <td class="px-5 py-3 font-black text-amber-700">
+                        {{ detalleCantidadPendienteDespues(detalle) }}
+                      </td>
+                      <td class="px-5 py-3 text-slate-600">{{ detalleObservacion(detalle) }}</td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td
+                        colspan="7"
+                        class="px-5 py-8 text-center text-sm font-semibold text-slate-500"
+                      >
+                        Este despacho no tiene detalles cargados.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+              <button
+                type="button"
+                (click)="cerrarModal()"
+                class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}

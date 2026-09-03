@@ -1,0 +1,1239 @@
+import { Component, computed, inject, signal } from '@angular/core';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+
+import { PedidosService } from '../../core/services/pedidos.service';
+import { InsumosService } from '../../core/services/insumos.service';
+import { AuthState } from '../../core/state/auth.state';
+import { Pedido } from '../../core/models/pedido.model';
+import { Insumo } from '../../core/models/insumo.model';
+
+type ModoModal =
+  | 'ninguno'
+  | 'nuevo'
+  | 'editar'
+  | 'ver'
+  | 'aprobar'
+  | 'rechazar'
+  | 'observar'
+  | 'despacho'
+  | 'anular';
+type FiltroFechaRapida = 'TODOS' | 'HOY' | 'SEMANA' | 'MES' | 'ANIO';
+
+interface DetalleFormulario {
+  idInsumo: string;
+  cantidadSolicitada: string;
+  observaciones: string;
+}
+
+@Component({
+  selector: 'app-pedidos',
+  standalone: true,
+  imports: [ReactiveFormsModule],
+  templateUrl: './pedidos.html',
+  styleUrl: './pedidos.css',
+})
+export class Pedidos {
+  private readonly pedidosService = inject(PedidosService);
+  private readonly insumosService = inject(InsumosService);
+  private readonly authState = inject(AuthState);
+  private readonly formBuilder = inject(FormBuilder);
+
+  cargando = signal(false);
+  guardando = signal(false);
+  error = signal('');
+  mensaje = signal('');
+
+  busqueda = signal('');
+  filtroFechaRapida = signal<FiltroFechaRapida>('TODOS');
+  filtroFechaDesde = signal('');
+  filtroFechaHasta = signal('');
+  filtroEstadoPedido = signal('TODOS');
+  filtroAprobacion = signal('TODOS');
+  filtroPrioridad = signal('TODOS');
+
+  pedidos = signal<Pedido[]>([]);
+  insumos = signal<Insumo[]>([]);
+
+  modoModal = signal<ModoModal>('ninguno');
+  pedidoSeleccionado = signal<Pedido | null>(null);
+  detallesFormulario = signal<DetalleFormulario[]>([]);
+
+  modalAbierto = computed(() => this.modoModal() !== 'ninguno');
+
+  tiposPedido = ['NORMAL', 'URGENTE', 'EMERGENCIA'];
+  prioridades = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
+  filtrosFechaRapida: { valor: FiltroFechaRapida; etiqueta: string }[] = [
+    { valor: 'TODOS', etiqueta: 'Todos' },
+    { valor: 'HOY', etiqueta: 'Hoy' },
+    { valor: 'SEMANA', etiqueta: 'Esta semana' },
+    { valor: 'MES', etiqueta: 'Este mes' },
+    { valor: 'ANIO', etiqueta: 'Este año' },
+  ];
+  estadosPedidoFiltro = [
+    'PENDIENTE',
+    'APROBADO',
+    'RECHAZADO',
+    'OBSERVADO',
+    'EN_COMPRA',
+    'EN_DESPACHO',
+    'ENTREGADO_PARCIAL',
+    'ENTREGADO_COMPLETO',
+    'CANCELADO',
+  ];
+  estadosAprobacionFiltro = ['PENDIENTE', 'APROBADO', 'RECHAZADO', 'OBSERVADO'];
+  prioridadesFiltro = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
+
+  totalPedidos = computed(() => this.pedidos().length);
+
+  totalPendientes = computed(() =>
+    this.pedidos().filter((p) => this.estadoPedido(p).includes('PENDIENTE')).length,
+  );
+
+  totalAprobados = computed(() =>
+    this.pedidos().filter((p) => this.estadoAprobacion(p).includes('APROBADO')).length,
+  );
+
+  totalRechazados = computed(() =>
+    this.pedidos().filter((p) => this.estadoAprobacion(p).includes('RECHAZADO')).length,
+  );
+
+  pedidosFiltrados = computed(() => {
+    const texto = this.busqueda().trim().toLowerCase();
+
+    return this.pedidos().filter((pedido) => {
+      return (
+        this.cumpleBusqueda(pedido, texto) &&
+        this.cumpleFiltroFecha(pedido) &&
+        this.cumpleFiltroEstado(pedido, this.filtroEstadoPedido()) &&
+        this.cumpleFiltroSelect(this.aprobacionPedidoFiltro(pedido), this.filtroAprobacion()) &&
+        this.cumpleFiltroSelect(this.prioridadPedidoFiltro(pedido), this.filtroPrioridad())
+      );
+    });
+  });
+
+  form = this.formBuilder.nonNullable.group({
+    tipoPedido: ['', [Validators.required]],
+    prioridad: ['', [Validators.required]],
+    fechaRequerida: ['', [Validators.required]],
+    centroCosto: ['', [Validators.required]],
+    lugarUso: [''],
+    turnoGuardia: [''],
+    motivoSolicitud: ['', [Validators.required]],
+    observaciones: [''],
+  });
+
+  formAccion = this.formBuilder.nonNullable.group({
+    observaciones: [''],
+    motivoRechazo: [''],
+  });
+
+  ngOnInit() {
+    this.cargarDatos();
+  }
+
+  cargarDatos() {
+    this.cargando.set(true);
+    this.error.set('');
+
+    this.pedidosService.listar().subscribe({
+      next: (data) => {
+        this.pedidos.set(data);
+        this.cargando.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudo cargar la lista de pedidos.');
+        this.cargando.set(false);
+      },
+    });
+
+    this.insumosService.listar().subscribe({
+      next: (data) => this.insumos.set(data),
+      error: () => this.insumos.set([]),
+    });
+  }
+
+  cambiarBusqueda(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.busqueda.set(input.value);
+  }
+
+  seleccionarFiltroFechaRapida(valor: FiltroFechaRapida) {
+    this.filtroFechaRapida.set(valor);
+  }
+
+  cambiarFiltroFechaDesde(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.filtroFechaDesde.set(input.value);
+  }
+
+  cambiarFiltroFechaHasta(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.filtroFechaHasta.set(input.value);
+  }
+
+  cambiarFiltroEstadoPedido(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.filtroEstadoPedido.set(select.value);
+  }
+
+  cambiarFiltroAprobacion(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.filtroAprobacion.set(select.value);
+  }
+
+  cambiarFiltroPrioridad(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.filtroPrioridad.set(select.value);
+  }
+
+  limpiarFiltros() {
+    this.busqueda.set('');
+    this.filtroFechaRapida.set('TODOS');
+    this.filtroFechaDesde.set('');
+    this.filtroFechaHasta.set('');
+    this.filtroEstadoPedido.set('TODOS');
+    this.filtroAprobacion.set('TODOS');
+    this.filtroPrioridad.set('TODOS');
+  }
+
+  abrirNuevo() {
+    this.error.set('');
+    this.mensaje.set('');
+    this.pedidoSeleccionado.set(null);
+    this.modoModal.set('nuevo');
+
+    this.form.reset({
+      tipoPedido: '',
+      prioridad: '',
+      fechaRequerida: '',
+      centroCosto: '',
+      lugarUso: '',
+      turnoGuardia: '',
+      motivoSolicitud: '',
+      observaciones: '',
+    });
+
+    this.detallesFormulario.set([
+      {
+        idInsumo: '',
+        cantidadSolicitada: '',
+        observaciones: '',
+      },
+    ]);
+  }
+
+  abrirVer(pedido: Pedido) {
+    const id = this.idPedido(pedido);
+
+    if (!id) {
+      this.pedidoSeleccionado.set(pedido);
+      this.modoModal.set('ver');
+      return;
+    }
+
+    this.pedidosService.buscarPorId(id).subscribe({
+      next: (data) => {
+        this.pedidoSeleccionado.set(data);
+        this.modoModal.set('ver');
+      },
+      error: () => {
+        this.pedidoSeleccionado.set(pedido);
+        this.modoModal.set('ver');
+      },
+    });
+  }
+
+  abrirEditar(pedido: Pedido) {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (!this.puedeEditar(pedido)) {
+      this.error.set('Este pedido ya no puede editarse por su estado actual.');
+      return;
+    }
+
+    this.pedidoSeleccionado.set(pedido);
+    this.modoModal.set('editar');
+
+    this.form.reset({
+      tipoPedido: this.tipoPedido(pedido),
+      prioridad: this.prioridadPedido(pedido),
+      fechaRequerida: this.fechaInput(this.fechaRequerida(pedido)),
+      centroCosto: this.centroCosto(pedido),
+      lugarUso: this.lugarUso(pedido),
+      turnoGuardia: this.turnoGuardia(pedido),
+      motivoSolicitud: this.motivoSolicitud(pedido),
+      observaciones: pedido.observaciones || '',
+    });
+
+    this.detallesFormulario.set([]);
+  }
+
+  abrirAprobar(pedido: Pedido) {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (!this.puedeAprobarRechazar(pedido)) {
+      this.error.set('Este pedido ya no puede aprobarse.');
+      return;
+    }
+
+    this.pedidoSeleccionado.set(pedido);
+    this.modoModal.set('aprobar');
+    this.formAccion.reset({
+      observaciones: '',
+      motivoRechazo: '',
+    });
+  }
+
+  abrirRechazar(pedido: Pedido) {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (!this.puedeAprobarRechazar(pedido)) {
+      this.error.set('Este pedido ya no puede rechazarse.');
+      return;
+    }
+
+    this.pedidoSeleccionado.set(pedido);
+    this.modoModal.set('rechazar');
+    this.formAccion.reset({
+      observaciones: '',
+      motivoRechazo: '',
+    });
+  }
+
+  abrirObservar(pedido: Pedido) {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (!this.puedeObservar(pedido)) {
+      this.error.set('Solo se pueden observar pedidos pendientes.');
+      return;
+    }
+
+    this.pedidoSeleccionado.set(pedido);
+    this.modoModal.set('observar');
+    this.formAccion.reset({
+      observaciones: '',
+      motivoRechazo: '',
+    });
+  }
+
+  abrirAnular(pedido: Pedido) {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (!this.puedeAnular(pedido)) {
+      this.error.set('Solo se pueden anular pedidos pendientes u observados.');
+      return;
+    }
+
+    this.pedidoSeleccionado.set(pedido);
+    this.modoModal.set('anular');
+  }
+
+  abrirEnviarDespacho(pedido: Pedido) {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (!this.puedeEnviarDespacho(pedido)) {
+      this.error.set('Solo se pueden preparar pedidos aprobados.');
+      return;
+    }
+
+    this.pedidoSeleccionado.set(pedido);
+    this.modoModal.set('despacho');
+  }
+
+  cerrarModal() {
+    this.modoModal.set('ninguno');
+    this.pedidoSeleccionado.set(null);
+    this.form.reset();
+    this.formAccion.reset();
+    this.detallesFormulario.set([]);
+  }
+
+  agregarDetalle() {
+    this.detallesFormulario.update((items) => [
+      ...items,
+      {
+        idInsumo: '',
+        cantidadSolicitada: '',
+        observaciones: '',
+      },
+    ]);
+  }
+
+  quitarDetalle(index: number) {
+    this.detallesFormulario.update((items) => items.filter((_, i) => i !== index));
+  }
+
+  cambiarDetalle(index: number, campo: keyof DetalleFormulario, event: Event) {
+    const input = event.target as HTMLInputElement | HTMLSelectElement;
+
+    this.detallesFormulario.update((items) => {
+      const copia = [...items];
+      copia[index] = {
+        ...copia[index],
+        [campo]: input.value,
+      };
+      return copia;
+    });
+  }
+
+  guardarPedido() {
+    this.error.set('');
+    this.mensaje.set('');
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.error.set('Complete los campos obligatorios del pedido.');
+      return;
+    }
+
+    const valores = this.form.getRawValue();
+
+    if (this.modoModal() === 'nuevo') {
+      const detallesFormulario = this.detallesFormulario();
+
+      if (
+        detallesFormulario.length === 0 ||
+        detallesFormulario.some(
+          (detalle) =>
+            !detalle.idInsumo ||
+            !detalle.cantidadSolicitada ||
+            Number(detalle.cantidadSolicitada) <= 0,
+        )
+      ) {
+        this.error.set(
+          'Cada detalle debe tener un insumo y una cantidad mayor a cero.',
+        );
+        return;
+      }
+
+      const detalles = detallesFormulario.map((d) => ({
+          idInsumo: Number(d.idInsumo),
+          cantidadSolicitada: Number(d.cantidadSolicitada),
+          observacion: d.observaciones?.trim() || undefined,
+        }));
+
+      const idUsuarioSolicitante = this.idUsuarioActual();
+      const idAreaSolicitante = this.idAreaActual();
+
+      const payload = {
+        numeroPedido: this.generarNumeroPedido(),
+        ...(idUsuarioSolicitante ? { idUsuarioSolicitante } : {}),
+        ...(idAreaSolicitante ? { idAreaSolicitante } : {}),
+        tipoPedido: valores.tipoPedido,
+        prioridad: valores.prioridad,
+        fechaRequerida: valores.fechaRequerida,
+        centroCosto: valores.centroCosto.trim(),
+        lugarUso: valores.lugarUso.trim() || undefined,
+        turnoGuardia: valores.turnoGuardia.trim() || undefined,
+        justificacion: valores.motivoSolicitud.trim(),
+        motivoSolicitud: valores.motivoSolicitud.trim(),
+        observaciones: valores.observaciones?.trim() || undefined,
+        detalles,
+      };
+
+      this.guardando.set(true);
+
+      this.pedidosService.crear(payload).subscribe({
+        next: () => {
+          this.guardando.set(false);
+          this.mensaje.set('Pedido creado correctamente.');
+          this.cerrarModal();
+          this.cargarDatos();
+        },
+        error: (error) => {
+          console.error('Error al crear pedido:', error);
+          this.guardando.set(false);
+          this.error.set(this.obtenerMensajeErrorBackend(error));
+        },
+      });
+
+      return;
+    }
+
+    const pedido = this.pedidoSeleccionado();
+
+    if (!pedido) {
+      this.error.set('No hay pedido seleccionado.');
+      return;
+    }
+
+    const payload = {
+      tipoPedido: valores.tipoPedido,
+      prioridad: valores.prioridad,
+      fechaRequerida: valores.fechaRequerida || undefined,
+      centroCosto: valores.centroCosto.trim(),
+      lugarUso: valores.lugarUso.trim() || undefined,
+      turnoGuardia: valores.turnoGuardia.trim() || undefined,
+      justificacion: valores.motivoSolicitud.trim(),
+      observaciones: valores.observaciones?.trim() || undefined,
+    };
+
+    this.guardando.set(true);
+
+    this.pedidosService.actualizar(this.idPedido(pedido), payload).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.mensaje.set('Pedido actualizado correctamente.');
+        this.cerrarModal();
+        this.cargarDatos();
+      },
+      error: (error) => {
+        console.error('Error al actualizar pedido:', error);
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+  confirmarAprobar() {
+    const pedido = this.pedidoSeleccionado();
+
+    if (!pedido) {
+      return;
+    }
+
+    const usuarioRevisa = this.idUsuarioActual();
+    const detalles = this.detallesPedido(pedido)
+      .map((detalle) => ({
+        idPedidoDetalle: this.idDetallePedido(detalle),
+        cantidadAprobada: Number(
+          detalle.cantidadAprobada ||
+            detalle.cantidad_aprobada ||
+            detalle.cantidadSolicitada ||
+            detalle.cantidad_solicitada ||
+            0,
+        ),
+      }))
+      .filter((detalle) => detalle.idPedidoDetalle > 0);
+
+    if (!usuarioRevisa || detalles.length === 0) {
+      this.error.set('No se pudo preparar la aprobación del pedido.');
+      return;
+    }
+
+    this.guardando.set(true);
+
+    this.pedidosService.aprobar(this.idPedido(pedido), {
+      usuarioRevisa,
+      observaciones: this.formAccion.getRawValue().observaciones || undefined,
+      detalles,
+    }).subscribe({
+      next: (data) => {
+        this.guardando.set(false);
+        this.mensaje.set(
+          data.message ||
+            (this.estadoPedidoFiltro(data) === 'EN_COMPRA'
+              ? 'Pedido aprobado y enviado a compras por stock insuficiente.'
+              : 'Pedido aprobado correctamente.'),
+        );
+        this.cerrarModal();
+        this.cargarDatos();
+      },
+      error: (error) => {
+        console.error('Error al aprobar pedido:', error);
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+  confirmarRechazar() {
+    const pedido = this.pedidoSeleccionado();
+    const motivo = this.formAccion.getRawValue().motivoRechazo;
+
+    if (!pedido) {
+      return;
+    }
+
+    if (!motivo?.trim()) {
+      this.error.set('Ingrese el motivo del rechazo.');
+      return;
+    }
+
+    if (!this.idUsuarioActual()) {
+      this.error.set('No se pudo identificar el usuario revisor de la sesión.');
+      return;
+    }
+
+    this.guardando.set(true);
+
+    this.pedidosService.rechazar(this.idPedido(pedido), {
+      usuarioRevisa: this.idUsuarioActual(),
+      motivoRechazo: motivo.trim(),
+    }).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.mensaje.set('Pedido rechazado correctamente.');
+        this.cerrarModal();
+        this.cargarDatos();
+      },
+      error: (error) => {
+        console.error('Error al rechazar pedido:', error);
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+  confirmarObservar() {
+    const pedido = this.pedidoSeleccionado();
+    const motivoObservacion =
+      this.formAccion.getRawValue().motivoRechazo.trim();
+    const usuarioRevisa = this.idUsuarioActual();
+
+    if (!pedido) {
+      return;
+    }
+
+    if (!motivoObservacion) {
+      this.error.set('Ingrese el motivo de la observación.');
+      return;
+    }
+
+    if (!usuarioRevisa) {
+      this.error.set('No se pudo identificar el usuario revisor de la sesión.');
+      return;
+    }
+
+    this.guardando.set(true);
+    this.pedidosService
+      .observar(this.idPedido(pedido), {
+        usuarioRevisa,
+        motivoObservacion,
+      })
+      .subscribe({
+        next: () => {
+          this.guardando.set(false);
+          this.mensaje.set('Pedido observado correctamente.');
+          this.cerrarModal();
+          this.cargarDatos();
+        },
+        error: (error) => {
+          this.guardando.set(false);
+          this.error.set(this.obtenerMensajeErrorBackend(error));
+        },
+      });
+  }
+
+  confirmarAnular() {
+    const pedido = this.pedidoSeleccionado();
+
+    if (!pedido) {
+      return;
+    }
+
+    this.guardando.set(true);
+
+    this.pedidosService.cancelar(this.idPedido(pedido)).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.mensaje.set('Pedido anulado correctamente.');
+        this.cerrarModal();
+        this.cargarDatos();
+      },
+      error: (error) => {
+        console.error('Error al anular pedido:', error);
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+  confirmarEnviarDespacho() {
+    const pedido = this.pedidoSeleccionado();
+
+    if (!pedido) {
+      return;
+    }
+
+    this.guardando.set(true);
+    this.pedidosService.enviarADespacho(this.idPedido(pedido)).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.mensaje.set('Pedido enviado a preparación de despacho.');
+        this.cerrarModal();
+        this.cargarDatos();
+      },
+      error: (error) => {
+        this.guardando.set(false);
+        this.error.set(this.obtenerMensajeErrorBackend(error));
+      },
+    });
+  }
+
+  obtenerMensajeErrorBackend(error: any): string {
+    const mensaje = error?.error?.message;
+
+    if (Array.isArray(mensaje)) {
+      return mensaje.join(' | ');
+    }
+
+    if (typeof mensaje === 'string') {
+      return mensaje;
+    }
+
+    if (error?.error?.error) {
+      return error.error.error;
+    }
+
+    return 'No se pudo completar la operación. Revise los datos enviados.';
+  }
+
+  idPedido(pedido: Pedido): number {
+    const data = pedido as any;
+    return Number(data.idPedido || data.id_pedido || 0);
+  }
+
+  numeroPedido(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.numeroPedido || data.numero_pedido || `PED-${this.idPedido(pedido)}`);
+  }
+
+  fechaPedido(pedido: Pedido): string {
+    return this.fechaPedidoFiltro(pedido);
+  }
+
+  fechaRequerida(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.fechaRequerida || data.fecha_requerida || '');
+  }
+
+  tipoPedido(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.tipoPedido || data.tipo_pedido || 'NORMAL');
+  }
+
+  prioridadPedido(pedido: Pedido): string {
+    return this.prioridadPedidoFiltro(pedido);
+  }
+
+  estadoPedido(pedido: Pedido): string {
+    return this.estadoPedidoFiltro(pedido);
+  }
+
+  estadoAprobacion(pedido: Pedido): string {
+    return this.aprobacionPedidoFiltro(pedido);
+  }
+
+  estadoAtencion(pedido: Pedido): string {
+    const data = pedido as any;
+    return this.normalizarEstado(
+      data.estadoAtencion || data.estado_atencion || 'SIN_ATENDER',
+    );
+  }
+
+  motivoSolicitud(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.justificacion || data.motivoSolicitud || data.motivo_solicitud || '');
+  }
+
+  centroCosto(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.centroCosto || data.centro_costo || '');
+  }
+
+  lugarUso(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.lugarUso || data.lugar_uso || '');
+  }
+
+  turnoGuardia(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(data.turnoGuardia || data.turno_guardia || '');
+  }
+
+  motivoObservacion(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(
+      data.motivoObservacion ||
+        data.motivo_observacion ||
+        data.motivoRechazo ||
+        data.motivo_rechazo ||
+        '',
+    );
+  }
+
+  solicitanteActual(): string {
+    return this.nombreUsuario(this.authState.usuario()) || 'Usuario autenticado';
+  }
+
+  areaActual(): string {
+    const usuario = this.authState.usuario() as any;
+    return String(
+      usuario?.nombreArea ||
+        usuario?.nombre_area ||
+        this.nombreArea(usuario?.area) ||
+        'Sin área asignada',
+    );
+  }
+
+  usuarioSolicitante(pedido: Pedido): string {
+    const data = pedido as any;
+    const usuario = data.usuarioSolicitante || data.usuario_solicitante || data.usuario;
+
+    return String(
+      this.nombreUsuario(usuario) ||
+        'Sin solicitante',
+    );
+  }
+
+  areaSolicitante(pedido: Pedido): string {
+    const data = pedido as any;
+    const area = data.areaSolicitante || data.area_solicitante || data.area;
+
+    return String(
+      this.nombreArea(area) ||
+        'Sin área',
+    );
+  }
+
+  detallesPedido(pedido: Pedido): any[] {
+    const data = pedido as any;
+    return data.detalles || data.pedidoDetalles || data.pedido_detalles || [];
+  }
+
+  fechaPedidoFiltro(pedido: Pedido): string {
+    const data = pedido as any;
+    return String(
+      data.fechaPedido ||
+        data.fecha_pedido ||
+        data.fechaCreacion ||
+        data.fecha_creacion ||
+        '',
+    );
+  }
+
+  estadoPedidoFiltro(pedido: Pedido): string {
+    const data = pedido as any;
+    return this.normalizarEstado(
+      data.estadoPedido || data.estado_pedido || data.estado || 'PENDIENTE',
+    );
+  }
+
+  aprobacionPedidoFiltro(pedido: Pedido): string {
+    const data = pedido as any;
+    return this.normalizarEstado(
+      data.estadoAprobacion || data.estado_aprobacion || 'PENDIENTE',
+    );
+  }
+
+  prioridadPedidoFiltro(pedido: Pedido): string {
+    const data = pedido as any;
+    return this.normalizarEstado(data.prioridad || 'MEDIA');
+  }
+
+  cumpleFiltroFecha(pedido: Pedido): boolean {
+    const fecha = this.parseFechaLocal(this.fechaPedidoFiltro(pedido));
+    const tieneFiltroFecha =
+      this.filtroFechaRapida() !== 'TODOS' ||
+      Boolean(this.filtroFechaDesde()) ||
+      Boolean(this.filtroFechaHasta());
+
+    if (!fecha) {
+      return !tieneFiltroFecha;
+    }
+
+    const rangoRapido = this.rangoFechaRapida();
+
+    if (rangoRapido && (fecha < rangoRapido.desde || fecha > rangoRapido.hasta)) {
+      return false;
+    }
+
+    const desde = this.parseFechaLocal(this.filtroFechaDesde());
+
+    if (desde && fecha < this.inicioDelDia(desde)) {
+      return false;
+    }
+
+    const hasta = this.parseFechaLocal(this.filtroFechaHasta());
+
+    if (hasta && fecha > this.finDelDia(hasta)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  detalleCodigo(detalle: any): string {
+    return String(
+      detalle.codigoInterno ||
+        detalle.codigo_interno ||
+        detalle.insumo?.codigoInterno ||
+        detalle.insumo?.codigo_interno ||
+        'Sin código',
+    );
+  }
+
+  detalleInsumo(detalle: any): string {
+    return String(
+      detalle.nombreInsumo ||
+        detalle.nombre_insumo ||
+        detalle.insumo?.nombreInsumo ||
+        detalle.insumo?.nombre_insumo ||
+        'Sin insumo',
+    );
+  }
+
+  detalleCantidad(detalle: any): string | number {
+    return detalle.cantidadSolicitada || detalle.cantidad_solicitada || 0;
+  }
+
+  detalleUnidad(detalle: any): string {
+    const unidad =
+      detalle.unidadMedida ||
+      detalle.unidad_medida ||
+      detalle.insumo?.unidadMedida ||
+      detalle.insumo?.unidad_medida ||
+      detalle.insumo?.unidad;
+
+    return String(
+      unidad?.abreviatura ||
+        unidad?.nombreUnidad ||
+        unidad?.nombre_unidad ||
+        '—',
+    );
+  }
+
+  unidadInsumoFormulario(idInsumo: string): string {
+    const insumo = this.insumos().find(
+      (item) => Number(item.idInsumo) === Number(idInsumo),
+    );
+    const unidad = insumo?.unidadMedida || insumo?.unidad;
+
+    return String(unidad?.abreviatura || unidad?.nombreUnidad || 'Sin unidad');
+  }
+
+  private idDetallePedido(detalle: any): number {
+    return Number(detalle.idPedidoDetalle || detalle.id_pedido_detalle || 0);
+  }
+
+  private idUsuarioActual(): number {
+    const usuario = this.authState.usuario() as any;
+    return Number(usuario?.idUsuario || usuario?.id_usuario || 0);
+  }
+
+  private idAreaActual(): number {
+    const usuario = this.authState.usuario() as any;
+    const area = usuario?.area;
+
+    return Number(
+      usuario?.idArea ||
+        usuario?.id_area ||
+        area?.idArea ||
+        area?.id_area ||
+        0,
+    );
+  }
+
+  private generarNumeroPedido(): string {
+    const fecha = new Date();
+    const ymd = fecha.toISOString().slice(0, 10).replaceAll('-', '');
+    return `PED-${ymd}-${fecha.getTime().toString().slice(-6)}`;
+  }
+
+  private nombreUsuario(usuario: any): string {
+    if (!usuario) return '';
+    if (typeof usuario === 'string') return usuario;
+
+    return (
+      usuario.nombreCompleto ||
+      usuario.nombre_completo ||
+      usuario.nombreUsuario ||
+      usuario.nombre_usuario ||
+      ''
+    );
+  }
+
+  private nombreArea(area: any): string {
+    if (!area) return '';
+    if (typeof area === 'string') return area;
+
+    return area.nombreArea || area.nombre_area || '';
+  }
+
+  fechaFormateada(fecha: string): string {
+    const fechaValida = this.parseFechaLocal(fecha);
+
+    if (!fechaValida) {
+      return 'Sin fecha';
+    }
+
+    return fechaValida.toLocaleString('es-BO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  fechaInput(fecha: string): string {
+    if (!fecha) {
+      return '';
+    }
+
+    return fecha.substring(0, 10);
+  }
+
+  claseEstado(estado: string): string {
+    const normalizado = estado?.toUpperCase();
+
+    if (normalizado.includes('APROBADO') || normalizado.includes('ATENDIDO')) {
+      return 'bg-green-100 text-green-700 border-green-200';
+    }
+
+    if (
+      normalizado.includes('RECHAZADO') ||
+      normalizado.includes('ANULADO') ||
+      normalizado.includes('CANCELADO')
+    ) {
+      return 'bg-red-100 text-red-700 border-red-200';
+    }
+
+    if (normalizado.includes('PENDIENTE')) {
+      return 'bg-orange-100 text-orange-700 border-orange-200';
+    }
+
+    return 'bg-blue-100 text-blue-700 border-blue-200';
+  }
+
+  clasePrioridad(prioridad: string): string {
+    const normalizado = prioridad?.toUpperCase();
+
+    if (normalizado === 'URGENTE') {
+      return 'bg-red-100 text-red-700 border-red-200';
+    }
+
+    if (normalizado === 'ALTA') {
+      return 'bg-orange-100 text-orange-700 border-orange-200';
+    }
+
+    if (normalizado === 'MEDIA') {
+      return 'bg-blue-100 text-blue-700 border-blue-200';
+    }
+
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+
+  esEstadoFinal(pedido: Pedido): boolean {
+    const estadoPedido = this.estadoPedidoFiltro(pedido);
+    const estadoAprobacion = this.aprobacionPedidoFiltro(pedido);
+
+    return (
+      ['ENTREGADO_COMPLETO', 'ANULADO', 'RECHAZADO', 'FINALIZADO', 'CANCELADO'].includes(
+        estadoPedido,
+      ) || estadoAprobacion === 'RECHAZADO'
+    );
+  }
+
+  puedeEditar(pedido: Pedido): boolean {
+    const estadoPedido = this.estadoPedidoFiltro(pedido);
+
+    if (this.esEstadoFinal(pedido)) {
+      return false;
+    }
+
+    if (['PENDIENTE', 'OBSERVADO'].includes(estadoPedido)) {
+      return true;
+    }
+
+    if (estadoPedido === 'APROBADO') {
+      return !this.tieneDespacho(pedido);
+    }
+
+    return false;
+  }
+
+  puedeAprobarRechazar(pedido: Pedido): boolean {
+    const estadoPedido = this.estadoPedidoFiltro(pedido);
+    const estadoAprobacion = this.aprobacionPedidoFiltro(pedido);
+
+    return (
+      !this.esEstadoFinal(pedido) &&
+      ['PENDIENTE', 'OBSERVADO'].includes(estadoPedido) &&
+      ['PENDIENTE', 'OBSERVADO'].includes(estadoAprobacion)
+    );
+  }
+
+  puedeObservar(pedido: Pedido): boolean {
+    return (
+      this.estadoPedidoFiltro(pedido) === 'PENDIENTE' &&
+      this.aprobacionPedidoFiltro(pedido) === 'PENDIENTE'
+    );
+  }
+
+  puedeEnviarDespacho(pedido: Pedido): boolean {
+    return (
+      this.estadoPedidoFiltro(pedido) === 'APROBADO' &&
+      this.aprobacionPedidoFiltro(pedido) === 'APROBADO' &&
+      !this.tieneDespacho(pedido)
+    );
+  }
+
+  puedeAnular(pedido: Pedido): boolean {
+    const estadoPedido = this.estadoPedidoFiltro(pedido);
+    const estadoAprobacion = this.aprobacionPedidoFiltro(pedido);
+
+    return (
+      ['PENDIENTE', 'OBSERVADO'].includes(estadoPedido) &&
+      ['PENDIENTE', 'OBSERVADO'].includes(estadoAprobacion)
+    );
+  }
+
+  private cumpleBusqueda(pedido: Pedido, texto: string): boolean {
+    if (!texto) {
+      return true;
+    }
+
+    return (
+      this.numeroPedido(pedido).toLowerCase().includes(texto) ||
+      this.tipoPedido(pedido).toLowerCase().includes(texto) ||
+      this.prioridadPedidoFiltro(pedido).toLowerCase().includes(texto) ||
+      this.estadoPedidoFiltro(pedido).toLowerCase().includes(texto) ||
+      this.aprobacionPedidoFiltro(pedido).toLowerCase().includes(texto) ||
+      this.estadoAtencion(pedido).toLowerCase().includes(texto) ||
+      this.usuarioSolicitante(pedido).toLowerCase().includes(texto) ||
+      this.areaSolicitante(pedido).toLowerCase().includes(texto)
+    );
+  }
+
+  private cumpleFiltroSelect(valorPedido: string, valorFiltro: string): boolean {
+    return (
+      this.normalizarEstado(valorFiltro) === 'TODOS' ||
+      this.normalizarEstado(valorPedido) === this.normalizarEstado(valorFiltro)
+    );
+  }
+
+  private cumpleFiltroEstado(
+    pedido: Pedido,
+    valorFiltro: string,
+  ): boolean {
+    const filtro = this.normalizarEstado(valorFiltro);
+
+    if (filtro === 'TODOS') {
+      return true;
+    }
+
+    const data = pedido as any;
+    const estados = [
+      data.estadoPedido,
+      data.estado_pedido,
+      data.estado,
+      data.estadoAtencion,
+      data.estado_atencion,
+    ]
+      .filter((valor) => valor !== null && valor !== undefined)
+      .map((valor) => this.normalizarEstado(valor));
+
+    return estados.includes(filtro);
+  }
+
+  private normalizarEstado(valor: unknown): string {
+    return String(valor || '')
+      .trim()
+      .toUpperCase()
+      .replace(/[\s-]+/g, '_');
+  }
+
+  private tieneDespacho(pedido: Pedido): boolean {
+    const estadoPedido = this.estadoPedidoFiltro(pedido);
+    const estadoAtencion = this.estadoAtencion(pedido).toUpperCase();
+
+    if (
+      ['EN_DESPACHO', 'ENTREGADO_PARCIAL', 'ENTREGADO_COMPLETO'].includes(
+        estadoPedido,
+      ) ||
+      ['ATENDIDO_PARCIAL', 'ATENDIDO_TOTAL'].includes(estadoAtencion)
+    ) {
+      return true;
+    }
+
+    return this.detallesPedido(pedido).some((detalle) => {
+      return (
+        Number(
+          detalle.cantidadDespachada ||
+            detalle.cantidad_despachada ||
+            detalle.cantidadEntregada ||
+            detalle.cantidad_entregada ||
+            0,
+        ) > 0
+      );
+    });
+  }
+
+  private parseFechaLocal(valor: string): Date | null {
+    if (!valor) {
+      return null;
+    }
+
+    const limpia = valor.trim();
+    const soloFecha = limpia.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (soloFecha) {
+      const fecha = new Date(
+        Number(soloFecha[1]),
+        Number(soloFecha[2]) - 1,
+        Number(soloFecha[3]),
+      );
+      return Number.isNaN(fecha.getTime()) ? null : fecha;
+    }
+
+    const fecha = new Date(limpia);
+    return Number.isNaN(fecha.getTime()) ? null : fecha;
+  }
+
+  private rangoFechaRapida(): { desde: Date; hasta: Date } | null {
+    const hoy = this.inicioDelDia(new Date());
+    const hasta = this.finDelDia(hoy);
+
+    if (this.filtroFechaRapida() === 'TODOS') {
+      return null;
+    }
+
+    if (this.filtroFechaRapida() === 'HOY') {
+      return { desde: hoy, hasta };
+    }
+
+    if (this.filtroFechaRapida() === 'SEMANA') {
+      const desde = this.inicioDelDia(hoy);
+      const dia = desde.getDay();
+      const ajuste = dia === 0 ? 6 : dia - 1;
+      desde.setDate(desde.getDate() - ajuste);
+      return { desde, hasta };
+    }
+
+    if (this.filtroFechaRapida() === 'MES') {
+      return {
+        desde: new Date(hoy.getFullYear(), hoy.getMonth(), 1),
+        hasta,
+      };
+    }
+
+    return {
+      desde: new Date(hoy.getFullYear(), 0, 1),
+      hasta,
+    };
+  }
+
+  private inicioDelDia(fecha: Date): Date {
+    const copia = new Date(fecha);
+    copia.setHours(0, 0, 0, 0);
+    return copia;
+  }
+
+  private finDelDia(fecha: Date): Date {
+    const copia = new Date(fecha);
+    copia.setHours(23, 59, 59, 999);
+    return copia;
+  }
+}

@@ -1,0 +1,619 @@
+<div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  <div>
+    <h2 class="text-3xl font-black text-slate-950">Proveedores</h2>
+    <p class="mt-1 text-sm text-slate-500">
+      Gestión de proveedores de insumos, repuestos, equipos y servicios mineros.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-3 sm:flex-row">
+    <button
+      type="button"
+      (click)="cargarProveedores()"
+      class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:bg-slate-50"
+    >
+      Actualizar
+    </button>
+
+    @if (tienePermiso('proveedores.crear')) {
+      <button
+        type="button"
+        (click)="abrirNuevo()"
+        class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+      >
+        + Nuevo proveedor
+      </button>
+    }
+  </div>
+</div>
+
+@if (error() && !modalAbierto()) {
+  <div class="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+    {{ error() }}
+  </div>
+}
+
+<div class="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
+      🚚
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Total proveedores</p>
+    <h3 class="mt-2 text-4xl font-black text-slate-950">
+      {{ totalProveedores() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-green-100 text-2xl">
+      ✅
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Activos</p>
+    <h3 class="mt-2 text-4xl font-black text-green-600">
+      {{ totalActivos() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-2xl">
+      ⛔
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Inactivos</p>
+    <h3 class="mt-2 text-4xl font-black text-red-600">
+      {{ totalInactivos() }}
+    </h3>
+  </div>
+
+  <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-2xl">
+      🔎
+    </div>
+    <p class="text-sm font-semibold text-slate-500">Filtrados</p>
+    <h3 class="mt-2 text-4xl font-black text-violet-600">
+      {{ proveedoresFiltrados().length }}
+    </h3>
+  </div>
+</div>
+
+<div class="rounded-3xl border border-slate-200 bg-white shadow-sm">
+  <div class="flex flex-col gap-4 border-b border-slate-200 p-6 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h3 class="text-xl font-black text-slate-950">Listado de proveedores</h3>
+      <p class="mt-1 text-sm text-slate-500">
+        Proveedores registrados para compras y abastecimiento de insumos.
+      </p>
+    </div>
+
+    <div class="relative w-full lg:w-96">
+      <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+        🔎
+      </span>
+
+      <input
+        type="text"
+        [value]="busqueda()"
+        (input)="cambiarBusqueda($event)"
+        class="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-12 pr-4 text-sm font-semibold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100"
+        placeholder="Buscar por razón social, NIT, rubro, ciudad..."
+      />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="m-6 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-bold text-blue-700">
+      Cargando proveedores...
+    </div>
+  }
+
+  <div class="lp-table-shell overflow-x-auto">
+    <table class="lp-data-table w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-widest text-slate-500">
+          <th class="px-6 py-4">Proveedor</th>
+          <th class="px-6 py-4">NIT</th>
+          <th class="px-6 py-4">Rubro</th>
+          <th class="px-6 py-4">Contacto</th>
+          <th class="px-6 py-4">Ciudad</th>
+          <th class="px-6 py-4">Estado</th>
+          <th class="px-6 py-4 text-center">Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (proveedor of proveedoresFiltrados(); track proveedor.idProveedor) {
+          <tr class="border-b border-slate-100 transition hover:bg-slate-50">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 text-lg text-white">
+                  {{ iconoRubro(proveedor.rubro) }}
+                </div>
+
+                <div>
+                  <p class="font-black text-slate-950">
+                    {{ proveedor.razonSocial }}
+                  </p>
+                  <p class="text-xs font-semibold text-slate-500">
+                    {{ proveedor.codigoProveedor }} · {{ proveedor.nombreComercial || 'Sin nombre comercial' }}
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 text-slate-600">
+              {{ proveedor.nit || 'Sin NIT' }}
+            </td>
+
+            <td class="px-6 py-4">
+              <span class="lp-neutral-chip">
+                {{ etiquetaRubro(proveedor.rubro) }}
+              </span>
+            </td>
+
+            <td class="px-6 py-4 text-slate-600">
+              <p class="font-bold text-slate-800">
+                {{ proveedor.personaContacto || 'Sin contacto' }}
+              </p>
+              <p class="text-xs text-slate-500">
+                {{ proveedor.celularWhatsapp || proveedor.telefono || 'Sin teléfono' }}
+              </p>
+            </td>
+
+            <td class="px-6 py-4 text-slate-600">
+              {{ proveedor.ciudad || 'Sin ciudad' }}
+            </td>
+
+            <td class="px-6 py-4">
+              <span
+                class="rounded-full border px-3 py-1 text-xs font-black"
+                [class]="claseEstado(proveedor.estado)"
+              >
+                {{ proveedor.estado }}
+              </span>
+            </td>
+
+            <td class="lp-actions-cell px-6 py-4">
+              <div class="lp-actions" tabindex="0">
+                <button
+                  type="button"
+                  class="lp-actions-trigger"
+                  aria-haspopup="menu"
+                  aria-label="Acciones del proveedor"
+                >
+                  &#8942;
+                </button>
+
+                <div class="lp-actions-menu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    (click)="abrirVer(proveedor)"
+                    class="lp-actions-item lp-action-view"
+                  >
+                    <span class="lp-actions-icon" aria-hidden="true">&#128065;</span>
+                    <span>Ver detalle</span>
+                  </button>
+
+                  @if (tienePermiso('proveedores.editar')) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirEditar(proveedor)"
+                      class="lp-actions-item lp-action-edit"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">&#9998;</span>
+                      <span>Editar</span>
+                    </button>
+                  }
+
+                  @if (tienePermiso(estaActivo(proveedor) ? 'proveedores.desactivar' : 'proveedores.activar')) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirConfirmacionEstado(proveedor)"
+                      [class]="estaActivo(proveedor) ? 'lp-actions-item lp-action-warning' : 'lp-actions-item lp-action-success'"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">
+                        @if (estaActivo(proveedor)) {
+                          &#9888;
+                        } @else {
+                          &#10003;
+                        }
+                      </span>
+                      <span>{{ estaActivo(proveedor) ? 'Desactivar' : 'Activar' }}</span>
+                    </button>
+                  }
+
+                  @if (tienePermiso('proveedores.eliminar')) {
+                    <button
+                      type="button"
+                      role="menuitem"
+                      (click)="abrirConfirmacionEliminar(proveedor)"
+                      class="lp-actions-item lp-action-danger"
+                    >
+                      <span class="lp-actions-icon" aria-hidden="true">&#128465;</span>
+                      <span>Eliminar</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="px-6 py-10 text-center text-sm font-semibold text-slate-500">
+              No se encontraron proveedores.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (modalAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+    <div class="w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+        <div>
+          <h3 class="text-xl font-black text-slate-950">
+            @if (modoModal() === 'nuevo') {
+              Nuevo proveedor
+            } @else if (modoModal() === 'editar') {
+              Editar proveedor
+            } @else {
+              Detalle del proveedor
+            }
+          </h3>
+
+          <p class="mt-1 text-sm text-slate-500">
+            @if (modoModal() === 'ver') {
+              Información completa del proveedor seleccionado.
+            } @else {
+              Complete los datos del formulario.
+            }
+          </p>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-100"
+        >
+          ✕
+        </button>
+      </div>
+
+      @if (error() && modalAbierto()) {
+        <div class="mx-6 mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700">
+          {{ error() }}
+        </div>
+      }
+
+      @if (modoModal() === 'ver') {
+        @if (proveedorSeleccionado(); as proveedor) {
+          <div class="p-6">
+            <div class="mb-6 flex items-center gap-4">
+              <div class="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 to-cyan-500 text-2xl text-white">
+                {{ iconoRubro(proveedor.rubro) }}
+              </div>
+
+              <div>
+                <h4 class="text-2xl font-black text-slate-950">
+                  {{ proveedor.razonSocial }}
+                </h4>
+                <p class="text-sm font-semibold text-slate-500">
+                  Código: {{ proveedor.codigoProveedor }} · NIT: {{ proveedor.nit }}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Nombre comercial</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.nombreComercial || 'Sin dato' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Rubro</p>
+                <p class="mt-1 font-bold text-blue-700">{{ etiquetaRubro(proveedor.rubro) }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Tipo de insumos</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.tipoInsumosProvee || 'Sin dato' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Persona contacto</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.personaContacto || 'Sin contacto' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Teléfono</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.telefono || 'Sin teléfono' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">WhatsApp</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.celularWhatsapp || 'Sin WhatsApp' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Correo</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.correo || 'Sin correo' }}</p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase text-slate-400">Ciudad</p>
+                <p class="mt-1 font-bold text-slate-900">{{ proveedor.ciudad || 'Sin ciudad' }}</p>
+              </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+              <button
+                type="button"
+                (click)="cerrarModal()"
+                class="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-800"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      @if (modoModal() === 'nuevo' || modoModal() === 'editar') {
+        <form [formGroup]="form" (ngSubmit)="guardarProveedor()" autocomplete="off" class="p-6">
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Código *
+              </label>
+              <input
+                type="text"
+                formControlName="codigoProveedor"
+                maxlength="10"
+                (input)="normalizarCodigoInput()"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+                placeholder="Ejemplo: PROV-001"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Razón social *
+              </label>
+              <input
+                type="text"
+                formControlName="razonSocial"
+                maxlength="100"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Nombre comercial *
+              </label>
+              <input
+                type="text"
+                formControlName="nombreComercial"
+                maxlength="60"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                NIT *
+              </label>
+              <input
+                type="text"
+                formControlName="nit"
+                maxlength="15"
+                inputmode="numeric"
+                (input)="normalizarNitInput()"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Rubro *
+              </label>
+              <select
+                formControlName="rubro"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione rubro</option>
+                @for (rubro of rubros; track rubro.valor) {
+                  <option class="bg-white text-slate-900 font-bold" [value]="rubro.valor">
+                    {{ rubro.etiqueta }}
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Tipo de insumo *
+              </label>
+              <input
+                type="text"
+                formControlName="tipoInsumosProvee"
+                maxlength="60"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+                placeholder="Ej. EPP, repuestos industriales, herramientas mineras, lubricantes"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Persona contacto *
+              </label>
+              <input
+                type="text"
+                formControlName="personaContacto"
+                maxlength="50"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Teléfono
+              </label>
+              <input
+                type="text"
+                formControlName="telefono"
+                maxlength="15"
+                inputmode="numeric"
+                (input)="normalizarTelefonoInput()"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                WhatsApp *
+              </label>
+              <div class="flex overflow-hidden rounded-2xl border border-slate-300 bg-white focus-within:border-blue-600 focus-within:ring-4 focus-within:ring-blue-100">
+                <span class="flex items-center border-r border-slate-200 bg-slate-100 px-4 text-sm font-black text-slate-600">+591</span>
+                <input
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="8"
+                  formControlName="celularWhatsapp"
+                  (input)="normalizarWhatsappInput()"
+                  class="w-full border-0 bg-white px-4 py-3 text-sm font-bold outline-none"
+                  placeholder="70000000"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Correo *
+              </label>
+              <input
+                type="email"
+                formControlName="correo"
+                maxlength="60"
+                (input)="normalizarCorreoInput()"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+                placeholder="proveedor@gmail.com"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-bold text-slate-700">
+                Ciudad
+              </label>
+              <select
+                formControlName="ciudad"
+                class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Seleccione ciudad</option>
+                @for (ciudad of ciudades; track ciudad) {
+                  <option [value]="ciudad">{{ ciudad }}</option>
+                }
+              </select>
+            </div>
+
+            @if (form.controls.ciudad.value === 'Otro') {
+              <div>
+                <label class="mb-2 block text-sm font-bold text-slate-700">
+                  Especifique ciudad
+                </label>
+                <input
+                  type="text"
+                  formControlName="ciudadOtro"
+                  class="modal-form-control w-full rounded-2xl px-4 py-3 text-sm font-bold outline-none transition focus:border-blue-600 focus:ring-4 focus:ring-blue-100"
+                  placeholder="Ingrese la ciudad"
+                />
+              </div>
+            }
+          </div>
+
+          <div class="mt-7 flex justify-end gap-3">
+            <button
+              type="button"
+              (click)="cerrarModal()"
+              class="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-60"
+            >
+              @if (guardando()) {
+                Guardando...
+              } @else if (modoModal() === 'nuevo') {
+                Crear proveedor
+              } @else {
+                Guardar cambios
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+}
+
+
+@if (confirmacionAbierta()) {
+  @if (proveedorConfirmacion(); as proveedor) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 backdrop-blur-sm">
+      <div class="w-full max-w-xl rounded-3xl border-2 border-slate-200 bg-white p-8 shadow-2xl">
+        <div class="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-100 text-3xl">
+          ⚠️
+        </div>
+
+        <h3 class="text-2xl font-black text-slate-950">
+          {{ tituloConfirmacionProveedor() }}
+        </h3>
+
+        <p class="mt-3 text-sm font-semibold leading-6 text-slate-500">
+          {{ mensajeConfirmacionProveedor() }}
+        </p>
+
+        <div class="mt-6 rounded-2xl bg-slate-50 p-5">
+          <p class="text-lg font-black text-slate-950">
+            {{ proveedor.razonSocial || proveedor.nombreComercial || proveedor.nombre || 'Proveedor seleccionado' }}
+          </p>
+          <p class="mt-1 text-sm font-semibold text-slate-500">
+            {{ proveedor.codigo || proveedor.codigoProveedor || 'Sin código' }}
+          </p>
+        </div>
+
+        <div class="mt-8 flex justify-end gap-3">
+          <button
+            type="button"
+            (click)="cerrarConfirmacionProveedor()"
+            class="rounded-2xl border-2 border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            (click)="confirmarCambioEstado()"
+            class="rounded-2xl border-2 px-5 py-3 text-sm font-black text-white shadow-sm transition"
+            [class.bg-green-600]="modoConfirmacion() === 'activar'"
+            [class.border-green-700]="modoConfirmacion() === 'activar'"
+            [class.hover:bg-green-700]="modoConfirmacion() === 'activar'"
+            [class.bg-red-600]="modoConfirmacion() !== 'activar'"
+            [class.border-red-700]="modoConfirmacion() !== 'activar'"
+            [class.hover:bg-red-700]="modoConfirmacion() !== 'activar'"
+          >
+            {{ textoBotonConfirmacionProveedor() }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

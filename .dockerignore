@@ -1,0 +1,11 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/.angular
+coverage
+**/coverage
+*.log
+**/*.log
+tmp-*
+**/tmp-*

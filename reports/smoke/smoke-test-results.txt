@@ -1,0 +1,51 @@
+
+> frontend@0.0.0 test:smoke
+> node tests/smoke/run-smoke-tests.cjs
+
+[smoke] Base controlada preparada: logistica_integracion1
+[frontend] [33m>[39m Building...
+[backend] [32m[Nest] 15932  - [39m22/08/2026, 3:47:29 p. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[backend] [32m[Nest] 15932  - [39m22/08/2026, 3:47:29 p. m. [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +3ms[39m
+[backend] Backend ejecutándose en http://localhost:3000/api
+[backend] Swagger disponible en http://localhost:3000/api/docs
+[smoke] Backend disponible: http://127.0.0.1:3000/api
+[frontend] [32m√[39m Building...
+[frontend] [1mInitial chunk files[22m[2m | [22m[1mNames[22m        [2m | [22m[1mRaw size[22m
+[frontend] [32mmain.js[39m            [2m | [22m[2mmain[22m         [2m | [22m [36m1.61 MB[39m[2m | [22m
+[frontend] [32mstyles.css[39m         [2m | [22m[2mstyles[22m       [2m | [22m[36m59.94 kB[39m[2m | [22m
+[frontend] 
+[frontend] [1m [22m                  [2m | [22m[1mInitial total[22m[2m | [22m [1m1.67 MB[22m
+[frontend] 
+[frontend] Application bundle generation complete. [7.299 seconds] - 2026-08-22T19:47:30.651Z
+[frontend] 
+[frontend] Watch mode enabled. Watching for file changes...
+[frontend] NOTE: Raw file sizes do not reflect development server per-request transformations.
+[frontend]   [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
+[smoke] Frontend disponible: http://127.0.0.1:4200
+
+Running 15 tests using 1 worker
+
+  ok  1 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:76:7 › Smoke Tests LOGISTICA-PORVENIR › PH-01 Backend disponible (66ms)
+  ok  2 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:83:7 › Smoke Tests LOGISTICA-PORVENIR › PH-02 Frontend disponible (941ms)
+  ok  3 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:92:7 › Smoke Tests LOGISTICA-PORVENIR › PH-03 Pantalla de login visible (29ms)
+  ok  4 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:99:7 › Smoke Tests LOGISTICA-PORVENIR › PH-04 Autenticacion exitosa (438ms)
+  ok  5 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:112:7 › Smoke Tests LOGISTICA-PORVENIR › PH-05 Dashboard disponible (273ms)
+  ok  6 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:124:7 › Smoke Tests LOGISTICA-PORVENIR › PH-06 Navegacion principal disponible (65ms)
+  ok  7 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:138:7 › Smoke Tests LOGISTICA-PORVENIR › PH-07 Almacenes disponible (143ms)
+  ok  8 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:143:7 › Smoke Tests LOGISTICA-PORVENIR › PH-08 Proveedores disponible (123ms)
+  ok  9 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:148:7 › Smoke Tests LOGISTICA-PORVENIR › PH-09 Insumos disponible (108ms)
+  ok 10 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:153:7 › Smoke Tests LOGISTICA-PORVENIR › PH-10 Pedidos disponible (110ms)
+  ok 11 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:158:7 › Smoke Tests LOGISTICA-PORVENIR › PH-11 Inventario disponible (135ms)
+  ok 12 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:168:7 › Smoke Tests LOGISTICA-PORVENIR › PH-12 Compras disponible (135ms)
+  ok 13 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:177:7 › Smoke Tests LOGISTICA-PORVENIR › PH-13 Reportes disponible (128ms)
+  ok 14 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:182:7 › Smoke Tests LOGISTICA-PORVENIR › PH-14 Notificaciones disponible (122ms)
+  ok 15 [chromium] › tests\smoke\logistica-porvenir.smoke.spec.ts:191:7 › Smoke Tests LOGISTICA-PORVENIR › PH-15 Cierre de sesion y proteccion de ruta (866ms)
+
+  15 passed (5.3s)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report ..\reports\smoke\playwright-report[39m
+[36m[39m
+[smoke] frontend detenido.
+[smoke] backend detenido.
