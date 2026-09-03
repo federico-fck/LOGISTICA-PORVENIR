@@ -33,10 +33,25 @@ http://localhost:8080/api/docs
 PostgreSQL:
 
 - Host: localhost
-- Puerto: 5432
+- Puerto Docker desde Windows: 5433
+- Puerto interno Docker: 5432
 - Database: insumos
 - User: postgres
 - Password: definido localmente en `.env.docker`
+
+Usuario inicial del sistema:
+
+- Usuario: `federico`
+- Password: `fede2002`
+
+Usuarios activos importados desde DBeaver:
+
+- `federico`
+- `miguel`
+- `jose`
+- `juve`
+- `fermin`
+- `martin`
 
 ## Detener
 
@@ -63,6 +78,23 @@ docker compose logs -f db
 ## Base de datos existente
 
 Docker crea una base nueva dentro del contenedor. La base actual de DBeaver llamada `insumos` no se importa automaticamente.
+
+En un volumen nuevo, Docker importa automaticamente:
+
+```text
+BASE DE DATOS/insumos_dbeaver_actual.pg16.sql
+```
+
+Ese archivo es un dump exportado desde la base local de DBeaver `insumos` y carga tus datos reales: usuarios, areas, roles, almacenes, proveedores, insumos, inventario, pedidos, compras, recepciones, despachos, notificaciones y auditoria.
+
+Importante: PostgreSQL solo usa `POSTGRES_DB`, `POSTGRES_USER` y `POSTGRES_PASSWORD` la primera vez que inicializa el volumen. Si cambiaste `.env.docker` despues de levantar el proyecto, o si ya existia un volumen con otra contraseña/base, debes recrear el volumen:
+
+```bash
+docker compose down -v
+docker compose up --build -d
+```
+
+El comando `down -v` borra los datos guardados en el volumen Docker de PostgreSQL.
 
 Opcion A: levantar base vacia.
 
@@ -126,7 +158,7 @@ http://localhost:8080/api -> http://backend:3000/api
 
 Puerto 5432 ocupado:
 
-Si tienes PostgreSQL local usando el puerto 5432, cambia el puerto externo del servicio `db` en `docker-compose.yml`, por ejemplo `5433:5432`.
+El proyecto ya publica PostgreSQL Docker en `5433:5432` porque el PostgreSQL local de DBeaver usa `localhost:5432`.
 
 Puerto 3000 ocupado:
 

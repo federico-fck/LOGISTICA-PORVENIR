@@ -5,11 +5,16 @@ services:
     env_file:
       - .env.docker
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - "./BASE DE DATOS/insumos_dbeaver_actual.pg16.sql:/docker-entrypoint-initdb.d/01-insumos-dbeaver-actual.sql:ro"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d insumos"]
+      test:
+        [
+          "CMD-SHELL",
+          "PGPASSWORD=$$POSTGRES_PASSWORD psql -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB -c 'SELECT 1' >/dev/null 2>&1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
