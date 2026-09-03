@@ -803,16 +803,12 @@ SELECT
 -- =============================================================================
 -- Áreas
 INSERT INTO areas (nombre_area, descripcion) VALUES
-('Mina', 'Área responsable de la operación minera.'),
-('Mantenimiento', 'Área encargada del mantenimiento de equipos e infraestructura.'),
-('Seguridad Industrial', 'Área responsable de la seguridad industrial y dotación de EPP.'),
-('Compras', 'Área encargada de gestionar compras y proveedores.'),
-('Almacén', 'Área responsable del control físico de insumos.'),
-('Administración', 'Área administrativa de apoyo.'),
-('Transporte', 'Área de apoyo logístico y transporte.'),
-('Perforación', 'Área encargada de trabajos de perforación.'),
-('Operaciones', 'Área de coordinación operativa.'),
-('Gerencia', 'Área de dirección y toma de decisiones.');
+('Operaciones / Mina', 'Área responsable de la operación minera.'),
+('Mantenimiento / Maestranza', 'Área encargada del mantenimiento de equipos e infraestructura.'),
+('Seguridad Industrial (HSE)', 'Área responsable de la seguridad industrial y dotación de EPP.'),
+('Logística / Almacenes', 'Área responsable del control físico de insumos.'),
+('Administración / Gerencia', 'Área administrativa y de gerencia.'),
+('Otros / Terceros', 'Área para terceros, otros servicios y casos no clasificados.');
 
 -- Roles
 INSERT INTO roles (nombre_rol, descripcion) VALUES
@@ -899,11 +895,11 @@ WHERE r.nombre_rol = 'Usuario solicitante';
 
 -- Usuarios. La contraseña está guardada como hash de ejemplo, no como texto plano.
 INSERT INTO usuarios (id_area, id_rol, nombre_completo, nombre_usuario, correo, cedula_identidad, password_hash, telefono, cargo) VALUES
-((SELECT id_area FROM areas WHERE nombre_area='Administración'), (SELECT id_rol FROM roles WHERE nombre_rol='Administrador'), 'Juan Pérez Administrador', 'jperez', 'jperez@mineria.local', '1000001 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000001', 'Administrador del sistema'),
-((SELECT id_area FROM areas WHERE nombre_area='Almacén'), (SELECT id_rol FROM roles WHERE nombre_rol='Jefe de almacén'), 'María Condori Alarcón', 'mcondori', 'mcondori@mineria.local', '1000002 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000002', 'Jefe de almacén'),
-((SELECT id_area FROM areas WHERE nombre_area='Mina'), (SELECT id_rol FROM roles WHERE nombre_rol='Supervisor de mina'), 'Carlos Quispe Mamani', 'cquispe', 'cquispe@mineria.local', '1000003 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000003', 'Supervisor de mina'),
-((SELECT id_area FROM areas WHERE nombre_area='Compras'), (SELECT id_rol FROM roles WHERE nombre_rol='Encargado de compras'), 'Ana Vargas Choque', 'avargas', 'avargas@mineria.local', '1000004 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000004', 'Encargada de compras'),
-((SELECT id_area FROM areas WHERE nombre_area='Mantenimiento'), (SELECT id_rol FROM roles WHERE nombre_rol='Usuario solicitante'), 'Luis Mamani Flores', 'lmamani', 'lmamani@mineria.local', '1000005 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000005', 'Técnico de mantenimiento');
+((SELECT id_area FROM areas WHERE nombre_area='Administración / Gerencia'), (SELECT id_rol FROM roles WHERE nombre_rol='Administrador'), 'Juan Pérez Administrador', 'jperez', 'jperez@mineria.local', '1000001 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000001', 'Administrador del sistema'),
+((SELECT id_area FROM areas WHERE nombre_area='Logística / Almacenes'), (SELECT id_rol FROM roles WHERE nombre_rol='Jefe de almacén'), 'María Condori Alarcón', 'mcondori', 'mcondori@mineria.local', '1000002 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000002', 'Jefe de almacén'),
+((SELECT id_area FROM areas WHERE nombre_area='Operaciones / Mina'), (SELECT id_rol FROM roles WHERE nombre_rol='Supervisor de mina'), 'Carlos Quispe Mamani', 'cquispe', 'cquispe@mineria.local', '1000003 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000003', 'Supervisor de mina'),
+((SELECT id_area FROM areas WHERE nombre_area='Logística / Almacenes'), (SELECT id_rol FROM roles WHERE nombre_rol='Encargado de compras'), 'Ana Vargas Choque', 'avargas', 'avargas@mineria.local', '1000004 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000004', 'Encargada de compras'),
+((SELECT id_area FROM areas WHERE nombre_area='Mantenimiento / Maestranza'), (SELECT id_rol FROM roles WHERE nombre_rol='Usuario solicitante'), 'Luis Mamani Flores', 'lmamani', 'lmamani@mineria.local', '1000005 LP', '$2b$10$8ZJN77JSkRYGkB9jMeq.1OSGAnvHst9NZ0oOv8xa4GO403cZm.Ffq', '70000005', 'Técnico de mantenimiento');
 
 -- Catálogos de insumos
 INSERT INTO categorias_insumo (nombre_categoria, descripcion, creado_por) VALUES
@@ -1006,9 +1002,9 @@ INSERT INTO pedidos (
     tipo_pedido, prioridad, justificacion, estado_pedido, estado_aprobacion, estado_atencion,
     centro_costo, turno_guardia, observaciones, id_usuario_revisor, fecha_revision, creado_por, actualizado_por
 ) VALUES
-('PED-2026-0001', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_area FROM areas WHERE nombre_area='Mina'), '2026-07-04', '2026-07-06', 'OPERACION', 'ALTA', 'Reposición de EPP para personal de operación mina.', 'APROBADO', 'APROBADO', 'EN_PROCESO', 'CC-MINA-001', 'Guardia día', 'Pedido aprobado para despacho y reposición de guantes.', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), NOW(), 3, 3),
-('PED-2026-0002', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_area FROM areas WHERE nombre_area='Perforación'), '2026-07-04', '2026-07-07', 'OPERACION', 'URGENTE', 'Brocas requeridas para trabajos de perforación programados.', 'APROBADO', 'APROBADO', 'EN_PROCESO', 'CC-PER-001', 'Guardia noche', 'Pedido requiere compra por stock insuficiente.', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), NOW(), 3, 3),
-('PED-2026-0003', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='lmamani'), (SELECT id_area FROM areas WHERE nombre_area='Mantenimiento'), '2026-07-04', '2026-07-08', 'MANTENIMIENTO', 'MEDIA', 'Aceite requerido para mantenimiento preventivo de equipos.', 'APROBADO', 'APROBADO', 'EN_PROCESO', 'CC-MANT-001', 'Guardia día', 'Pedido requiere compra de reposición.', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), NOW(), 5, 3);
+('PED-2026-0001', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_area FROM areas WHERE nombre_area='Operaciones / Mina'), '2026-07-04', '2026-07-06', 'OPERACION', 'ALTA', 'Reposición de EPP para personal de operación mina.', 'APROBADO', 'APROBADO', 'EN_PROCESO', 'CC-MINA-001', 'Guardia día', 'Pedido aprobado para despacho y reposición de guantes.', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), NOW(), 3, 3),
+('PED-2026-0002', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_area FROM areas WHERE nombre_area='Operaciones / Mina'), '2026-07-04', '2026-07-07', 'OPERACION', 'URGENTE', 'Brocas requeridas para trabajos de perforación programados.', 'APROBADO', 'APROBADO', 'EN_PROCESO', 'CC-PER-001', 'Guardia noche', 'Pedido requiere compra por stock insuficiente.', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), NOW(), 3, 3),
+('PED-2026-0003', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='lmamani'), (SELECT id_area FROM areas WHERE nombre_area='Mantenimiento / Maestranza'), '2026-07-04', '2026-07-08', 'MANTENIMIENTO', 'MEDIA', 'Aceite requerido para mantenimiento preventivo de equipos.', 'APROBADO', 'APROBADO', 'EN_PROCESO', 'CC-MANT-001', 'Guardia día', 'Pedido requiere compra de reposición.', (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), NOW(), 5, 3);
 
 INSERT INTO pedido_detalles (id_pedido, id_insumo, cantidad_solicitada, cantidad_aprobada, cantidad_despachada, observacion) VALUES
 ((SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0001'), (SELECT id_insumo FROM insumos WHERE codigo_interno='SEG-CAS-001'), 20, 20, 20, 'Cascos para personal operativo.'),
@@ -1070,9 +1066,9 @@ INSERT INTO despachos (
     id_responsable_almacen, persona_recibe, fecha_programada_entrega, fecha_real_entrega,
     tipo_despacho, estado_despacho, confirmacion_recepcion, evidencia_entrega, observaciones, usuario_registra
 ) VALUES
-('DES-2026-0001', (SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0001'), (SELECT id_area FROM areas WHERE nombre_area='Mina'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_almacen FROM almacenes WHERE codigo_almacen='ALM-SUP-001'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='mcondori'), 'Carlos Quispe Mamani', '2026-07-06', '2026-07-06', 'NORMAL', 'ENTREGADO_COMPLETO', TRUE, 'evidencia_des_0001.pdf', 'Despacho completo de EPP.', 2),
-('DES-2026-0002', (SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0002'), (SELECT id_area FROM areas WHERE nombre_area='Perforación'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_almacen FROM almacenes WHERE codigo_almacen='ALM-SUP-001'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='mcondori'), 'Carlos Quispe Mamani', '2026-07-07', '2026-07-07', 'URGENTE', 'ENTREGADO_COMPLETO', TRUE, 'evidencia_des_0002.pdf', 'Despacho completo de brocas.', 2),
-('DES-2026-0003', (SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0003'), (SELECT id_area FROM areas WHERE nombre_area='Mantenimiento'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='lmamani'), (SELECT id_almacen FROM almacenes WHERE codigo_almacen='ALM-SUP-001'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='mcondori'), 'Luis Mamani Flores', '2026-07-08', '2026-07-08', 'NORMAL', 'ENTREGADO_COMPLETO', TRUE, 'evidencia_des_0003.pdf', 'Despacho completo de aceite.', 2);
+('DES-2026-0001', (SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0001'), (SELECT id_area FROM areas WHERE nombre_area='Operaciones / Mina'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_almacen FROM almacenes WHERE codigo_almacen='ALM-SUP-001'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='mcondori'), 'Carlos Quispe Mamani', '2026-07-06', '2026-07-06', 'NORMAL', 'ENTREGADO_COMPLETO', TRUE, 'evidencia_des_0001.pdf', 'Despacho completo de EPP.', 2),
+('DES-2026-0002', (SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0002'), (SELECT id_area FROM areas WHERE nombre_area='Operaciones / Mina'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='cquispe'), (SELECT id_almacen FROM almacenes WHERE codigo_almacen='ALM-SUP-001'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='mcondori'), 'Carlos Quispe Mamani', '2026-07-07', '2026-07-07', 'URGENTE', 'ENTREGADO_COMPLETO', TRUE, 'evidencia_des_0002.pdf', 'Despacho completo de brocas.', 2),
+('DES-2026-0003', (SELECT id_pedido FROM pedidos WHERE numero_pedido='PED-2026-0003'), (SELECT id_area FROM areas WHERE nombre_area='Mantenimiento / Maestranza'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='lmamani'), (SELECT id_almacen FROM almacenes WHERE codigo_almacen='ALM-SUP-001'), (SELECT id_usuario FROM usuarios WHERE nombre_usuario='mcondori'), 'Luis Mamani Flores', '2026-07-08', '2026-07-08', 'NORMAL', 'ENTREGADO_COMPLETO', TRUE, 'evidencia_des_0003.pdf', 'Despacho completo de aceite.', 2);
 
 INSERT INTO despacho_detalles (
     id_despacho, id_insumo, cantidad_solicitada, cantidad_aprobada, cantidad_entregada,

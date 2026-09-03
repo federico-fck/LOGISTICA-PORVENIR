@@ -54,6 +54,15 @@ type CampoFormularioUsuario =
   | 'idArea'
   | 'estado';
 
+const AREAS_POR_DEFECTO: Area[] = [
+  { idArea: 1, nombreArea: 'Operaciones / Mina' },
+  { idArea: 2, nombreArea: 'Mantenimiento / Maestranza' },
+  { idArea: 3, nombreArea: 'Seguridad Industrial (HSE)' },
+  { idArea: 4, nombreArea: 'Logística / Almacenes' },
+  { idArea: 5, nombreArea: 'Administración / Gerencia' },
+  { idArea: 6, nombreArea: 'Otros / Terceros' },
+];
+
 @Component({
   selector: 'app-usuarios',
   standalone: true,
@@ -173,13 +182,7 @@ export class Usuarios {
     { idRol: 7, nombreRol: 'Usuario solicitante' },
   ];
 
-  areas = [
-    { idArea: 1, nombreArea: 'Administración' },
-    { idArea: 2, nombreArea: 'Almacén' },
-    { idArea: 3, nombreArea: 'Operación Mina' },
-    { idArea: 4, nombreArea: 'Compras' },
-    { idArea: 5, nombreArea: 'Auditoría' },
-  ];
+  areas: Area[] = [...AREAS_POR_DEFECTO];
 
   ngOnInit() {
     this.cargarCatalogos();
@@ -212,7 +215,7 @@ export class Usuarios {
         this.areas = areas;
       },
       error: () => {
-        this.areas = [];
+        this.areas = [...AREAS_POR_DEFECTO];
       },
     });
   }
