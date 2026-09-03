@@ -114,13 +114,9 @@ export class Usuarios {
 
   totalUsuarios = computed(() => this.usuarios().length);
 
-  totalActivos = computed(
-    () => this.usuarios().filter((u) => u.estado === 'ACTIVO').length,
-  );
+  totalActivos = computed(() => this.usuarios().filter((u) => u.estado === 'ACTIVO').length);
 
-  totalInactivos = computed(
-    () => this.usuarios().filter((u) => u.estado === 'INACTIVO').length,
-  );
+  totalInactivos = computed(() => this.usuarios().filter((u) => u.estado === 'INACTIVO').length);
 
   usuariosFiltrados = computed(() => {
     const texto = this.busqueda().trim().toLowerCase();
@@ -148,18 +144,9 @@ export class Usuarios {
   });
 
   form = this.formBuilder.nonNullable.group({
-    nombreUsuario: [
-      '',
-      [Validators.required, Validators.maxLength(25), usuarioSistemaValidator()],
-    ],
-    nombreCompleto: [
-      '',
-      [Validators.required, Validators.maxLength(50), nombrePersonaValidator()],
-    ],
-    correo: [
-      '',
-      [Validators.required, Validators.maxLength(60), correoProfesionalValidator()],
-    ],
+    nombreUsuario: ['', [Validators.required, Validators.maxLength(25), usuarioSistemaValidator()]],
+    nombreCompleto: ['', [Validators.required, Validators.maxLength(50), nombrePersonaValidator()]],
+    correo: ['', [Validators.required, Validators.maxLength(60), correoProfesionalValidator()]],
     cedulaIdentidad: ['', [Validators.required, soloNumerosMaxValidator(9)]],
     complementoCi: ['', [Validators.maxLength(2), complementoCiValidator()]],
     expedidoCi: [''],
@@ -200,9 +187,7 @@ export class Usuarios {
   cargarCatalogos() {
     this.usuariosService.listarRoles().subscribe({
       next: (roles) => {
-        const rolesOficiales = roles.filter((rol) =>
-          this.esRolSeleccionable(rol),
-        );
+        const rolesOficiales = roles.filter((rol) => this.esRolSeleccionable(rol));
         this.roles = rolesOficiales.length > 0 ? rolesOficiales : this.roles;
       },
       error: () => {
@@ -228,7 +213,9 @@ export class Usuarios {
 
     this.usuariosService.listar().subscribe({
       next: (data) => {
-        this.usuarios.set((data).filter((usuario: any) => String(usuario.estado || '').toUpperCase() !== 'ELIMINADO'));
+        this.usuarios.set(
+          data.filter((usuario: any) => String(usuario.estado || '').toUpperCase() !== 'ELIMINADO'),
+        );
         this.cargando.set(false);
       },
       error: () => {
@@ -359,9 +346,7 @@ export class Usuarios {
   }
 
   abrirConfirmacionEstado(usuario: Usuario) {
-    const permiso = this.estaActivo(usuario)
-      ? 'usuarios.desactivar'
-      : 'usuarios.activar';
+    const permiso = this.estaActivo(usuario) ? 'usuarios.desactivar' : 'usuarios.activar';
 
     if (!this.verificarPermiso(permiso)) {
       return;
@@ -408,14 +393,9 @@ export class Usuarios {
     return this.menuAccionesUsuarioId() === usuario.idUsuario;
   }
 
-  menuAccionesHaciaArriba(
-    usuario: Usuario,
-    indice: number,
-    total: number,
-  ): boolean {
+  menuAccionesHaciaArriba(usuario: Usuario, indice: number, total: number): boolean {
     return (
-      this.menuAccionesAbierto(usuario) &&
-      (this.menuAccionesAbreArriba() || indice >= total - 2)
+      this.menuAccionesAbierto(usuario) && (this.menuAccionesAbreArriba() || indice >= total - 2)
     );
   }
 
@@ -642,10 +622,7 @@ export class Usuarios {
 
   normalizarComplementoInput() {
     const control = this.form.controls.complementoCi;
-    const valor = normalizarMayusculas(limpiarComplementoCi(control.value)).slice(
-      0,
-      2,
-    );
+    const valor = normalizarMayusculas(limpiarComplementoCi(control.value)).slice(0, 2);
 
     if (valor !== control.value) {
       control.setValue(valor, { emitEvent: false });
@@ -703,17 +680,11 @@ export class Usuarios {
       confirmaEnEdicion || (this.modoModal() === 'nuevo' && confirmarPassword);
 
     if (validarConfirmacion && password && confirmarPassword && password !== confirmarPassword) {
-      this.agregarErrorControl(
-        this.form.controls.confirmarPassword,
-        'passwordConfirmacion',
-      );
+      this.agregarErrorControl(this.form.controls.confirmarPassword, 'passwordConfirmacion');
       return;
     }
 
-    this.quitarErrorControl(
-      this.form.controls.confirmarPassword,
-      'passwordConfirmacion',
-    );
+    this.quitarErrorControl(this.form.controls.confirmarPassword, 'passwordConfirmacion');
   }
 
   private actualizarValidadoresPassword() {
@@ -832,11 +803,7 @@ export class Usuarios {
     const area = usuario.area as any;
 
     return Number(
-      data.idArea ||
-        data.id_area ||
-        area?.idArea ||
-        area?.id_area ||
-        this.idAreaPorDefecto(),
+      data.idArea || data.id_area || area?.idArea || area?.id_area || this.idAreaPorDefecto(),
     );
   }
 
@@ -951,5 +918,4 @@ export class Usuarios {
 
     return '';
   }
-
 }
