@@ -50,14 +50,16 @@
 :host ::ng-deep main table th {
   color: #020617 !important;
   font-weight: 950 !important;
-  letter-spacing: 0.16em !important;
+  letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
-  font-size: 13px !important;
+  font-size: 10.5px !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
 
 :host ::ng-deep main table td {
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
@@ -121,7 +123,7 @@
   background: #f8fafc !important;
   border-left: 2px solid #cbd5e1 !important;
   border-bottom: 2px solid #cbd5e1 !important;
-  padding: 12px 14px !important;
+  padding: 8px 6px !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
@@ -132,9 +134,23 @@
   border-left: 2px solid #cbd5e1 !important;
   border-bottom: 2.5px solid #cbd5e1 !important;
   color: #020617 !important;
+  font-size: 10px !important;
   font-weight: 950 !important;
+  letter-spacing: 0.03em !important;
+  padding-right: 6px !important;
+  padding-left: 6px !important;
+  overflow: hidden !important;
   text-align: center !important;
+  text-overflow: clip !important;
   vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+:host ::ng-deep main table:has(td:last-child button) th:last-child,
+:host ::ng-deep main table:has(td:last-child a) th:last-child {
+  width: 96px !important;
+  min-width: 96px !important;
+  max-width: 112px !important;
 }
 
 /* Caja interna de acciones/detalle */
@@ -153,6 +169,20 @@
   border: 2px solid #cbd5e1 !important;
   border-radius: 16px !important;
   box-shadow: 0 5px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+:host ::ng-deep main table td:last-child:has(button) > div.lp-actions,
+:host ::ng-deep main table td:last-child:has(a) > div.lp-actions,
+:host ::ng-deep main table td:last-child:has(button) > div.acciones-menu-wrapper,
+:host ::ng-deep main table td:last-child:has(a) > div.acciones-menu-wrapper {
+  gap: 0 !important;
+  flex-wrap: nowrap !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 /* Botones dentro de la caja de acciones */

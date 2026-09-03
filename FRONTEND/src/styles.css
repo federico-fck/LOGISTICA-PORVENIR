@@ -320,14 +320,14 @@ app-admin-layout main table:not(.usuarios-table) thead tr,
 app-admin-layout main table:not(.usuarios-table) th,
 .lp-data-table th {
   height: 56px;
-  padding: 14px 16px !important;
+  padding: 12px 10px !important;
   border-right: 1px solid #d8e2ef !important;
   border-bottom: 2px solid #cbd5e1 !important;
   background: #f1f5f9 !important;
   color: #0f172a !important;
-  font-size: 11px !important;
+  font-size: 10.5px !important;
   font-weight: 950 !important;
-  letter-spacing: 0.14em !important;
+  letter-spacing: 0.06em !important;
   line-height: 1.2 !important;
   text-align: center !important;
   text-transform: uppercase !important;
@@ -337,12 +337,14 @@ app-admin-layout main table:not(.usuarios-table) th,
 app-admin-layout main table:not(.usuarios-table) td,
 .lp-data-table td {
   min-width: 0;
-  padding: 14px 16px !important;
+  padding: 12px 10px !important;
   border-right: 1px solid #d8e2ef !important;
   border-bottom: 1px solid #d8e2ef !important;
   background: #ffffff !important;
   color: #1e293b;
+  font-size: 13.5px !important;
   font-weight: 700;
+  line-height: 1.35 !important;
   text-align: center !important;
   vertical-align: middle !important;
   overflow: visible;
@@ -353,6 +355,20 @@ app-admin-layout main table:not(.usuarios-table) td:last-child,
 .lp-data-table th:last-child,
 .lp-data-table td:last-child {
   border-right: 0 !important;
+}
+
+app-admin-layout main table:not(.usuarios-table):has(td:last-child button) th:last-child,
+app-admin-layout main table:not(.usuarios-table):has(td:last-child a) th:last-child,
+.lp-data-table:has(td:last-child button) th:last-child,
+.lp-data-table:has(td:last-child a) th:last-child {
+  width: 96px !important;
+  padding-right: 6px !important;
+  padding-left: 6px !important;
+  overflow: hidden;
+  font-size: 10px !important;
+  letter-spacing: 0.03em !important;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 app-admin-layout main table:not(.usuarios-table) tbody tr,
@@ -416,6 +432,9 @@ app-admin-layout main table:not(.usuarios-table) td span[class*="rounded-full"],
   max-width: min(100%, 180px);
   align-items: center;
   justify-content: center;
+  padding: 0.3rem 0.7rem !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0 !important;
   white-space: normal;
   overflow-wrap: normal;
   word-break: normal;
@@ -444,114 +463,110 @@ app-admin-layout main table:not(.usuarios-table) td span[class*="rounded-full"],
 }
 
 .lp-catalog-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
   table-layout: fixed;
 }
 
-.lp-warehouse-table {
-  min-width: 1350px;
-}
-
-.lp-suppliers-table {
-  min-width: 1210px;
-}
-
-.lp-supplies-table {
-  min-width: 1210px;
-}
-
 .lp-warehouse-table .lp-col-main {
-  width: 250px;
+  width: 19%;
 }
 
 .lp-warehouse-table .lp-col-chip {
-  width: 210px;
+  width: 15%;
 }
 
 .lp-warehouse-table .lp-col-location {
-  width: 190px;
+  width: 15%;
 }
 
 .lp-warehouse-table .lp-col-phone {
-  width: 120px;
+  width: 8%;
 }
 
 .lp-warehouse-table .lp-col-schedule {
-  width: 190px;
+  width: 15%;
 }
 
 .lp-warehouse-table .lp-col-person {
-  width: 180px;
+  width: 13%;
 }
 
 .lp-warehouse-table .lp-col-status {
-  width: 120px;
+  width: 7%;
 }
 
 .lp-warehouse-table .lp-col-actions {
-  width: 90px;
+  width: 8%;
 }
 
 .lp-suppliers-table .lp-col-main {
-  width: 280px;
+  width: 24%;
 }
 
 .lp-suppliers-table .lp-col-nit {
-  width: 145px;
+  width: 12%;
 }
 
 .lp-suppliers-table .lp-col-chip {
-  width: 200px;
+  width: 17%;
 }
 
 .lp-suppliers-table .lp-col-contact {
-  width: 255px;
+  width: 23%;
 }
 
 .lp-suppliers-table .lp-col-city {
-  width: 110px;
+  width: 8%;
 }
 
 .lp-suppliers-table .lp-col-status {
-  width: 120px;
+  width: 8%;
 }
 
 .lp-suppliers-table .lp-col-actions {
-  width: 90px;
+  width: 8%;
 }
 
 .lp-supplies-table .lp-col-main {
-  width: 270px;
+  width: 23%;
 }
 
 .lp-supplies-table .lp-col-chip {
-  width: 190px;
+  width: 17%;
 }
 
 .lp-supplies-table .lp-col-type {
-  width: 200px;
+  width: 17%;
 }
 
 .lp-supplies-table .lp-col-unit {
-  width: 170px;
+  width: 14%;
 }
 
 .lp-supplies-table .lp-col-price {
-  width: 160px;
+  width: 13%;
 }
 
 .lp-supplies-table .lp-col-status {
-  width: 120px;
+  width: 8%;
 }
 
 .lp-supplies-table .lp-col-actions {
-  width: 90px;
+  width: 8%;
 }
 
+app-admin-layout main .lp-catalog-table th,
 .lp-catalog-table th {
-  letter-spacing: 0 !important;
+  padding: 12px 10px !important;
+  font-size: 10.5px !important;
+  letter-spacing: 0.06em !important;
 }
 
+app-admin-layout main .lp-catalog-table td,
 .lp-catalog-table td {
+  padding: 12px 10px !important;
   color: #334155;
   font-weight: 650;
   line-height: 1.35;
@@ -625,11 +640,11 @@ app-admin-layout main table:not(.usuarios-table) td span[class*="rounded-full"],
 .lp-catalog-table .lp-neutral-chip {
   max-width: 100%;
   min-height: 30px;
-  padding: 0.34rem 0.8rem;
+  padding: 0.3rem 0.7rem;
   border-color: #b9d7ff;
   background: #eff6ff;
   color: #0f4fe6;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 850;
   letter-spacing: 0;
   line-height: 1.15;
@@ -640,10 +655,31 @@ app-admin-layout main table:not(.usuarios-table) td span[class*="rounded-full"],
 }
 
 .lp-catalog-table .lp-status-chip {
-  min-width: 92px;
+  min-width: 0;
+  width: 100%;
+  max-width: 112px;
   justify-content: center;
   letter-spacing: 0;
   white-space: nowrap;
+}
+
+app-admin-layout main .lp-catalog-table .lp-actions-cell,
+.lp-catalog-table .lp-actions-cell {
+  width: auto;
+  padding: 8px 6px !important;
+}
+
+app-admin-layout main .lp-catalog-table td:last-child,
+.lp-catalog-table td:last-child {
+  padding: 8px 6px !important;
+}
+
+app-admin-layout main .lp-catalog-table td:last-child:has(button) > .lp-actions,
+.lp-catalog-table td:last-child:has(button) > .lp-actions {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .lp-table-shell,

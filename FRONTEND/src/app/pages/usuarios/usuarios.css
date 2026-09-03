@@ -161,15 +161,17 @@ table thead th,
 table th {
   color: #020617 !important;
   font-weight: 950 !important;
-  letter-spacing: 0.16em !important;
+  letter-spacing: 0.06em !important;
   text-transform: uppercase !important;
-  font-size: 13px !important;
+  font-size: 10.5px !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
 
 /* Datos centrados */
 table td {
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
@@ -241,14 +243,21 @@ form label {
 /* Acciones en caja separada, como estaba antes */
 table th:last-child {
   color: #020617 !important;
+  overflow: hidden !important;
+  padding-right: 6px !important;
+  padding-left: 6px !important;
   text-align: center !important;
   background: #e2e8f0 !important;
   border-left: 2px solid #cbd5e1 !important;
+  font-size: 10px !important;
   font-weight: 950 !important;
+  letter-spacing: 0.03em !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
 }
 
 table td:last-child {
-  padding: 14px 18px !important;
+  padding: 8px 6px !important;
   background: #f8fafc !important;
   border-left: 2px solid #cbd5e1 !important;
   text-align: center !important;
@@ -329,7 +338,7 @@ table tbody tr:hover td {
 }
 
 .usuarios-table .col-usuario {
-  width: 30%;
+  width: 28%;
 }
 
 .usuarios-table .col-documento {
@@ -349,7 +358,7 @@ table tbody tr:hover td {
 }
 
 .usuarios-table .col-acciones {
-  width: 8%;
+  width: 10%;
 }
 
 .usuarios-table th,
@@ -360,32 +369,41 @@ table tbody tr:hover td {
 
 .usuarios-table th {
   height: 56px;
-  padding: 14px 16px !important;
+  padding: 12px 10px !important;
   border-right: 1px solid #d8e2ef !important;
   background: #f1f5f9 !important;
   color: #334155 !important;
-  font-size: 11px !important;
+  font-size: 10.5px !important;
   font-weight: 900 !important;
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.06em !important;
   line-height: 1.2 !important;
   text-align: center !important;
   vertical-align: middle !important;
 }
 
 .usuarios-table th:last-child {
-  padding: 14px 10px !important;
+  width: 96px !important;
+  min-width: 96px !important;
+  padding: 12px 6px !important;
   border-left: 0 !important;
   border-right: 0 !important;
   background: #f1f5f9 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.03em !important;
+  overflow: hidden !important;
   text-align: center !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
 }
 
 .usuarios-table td {
   min-width: 0;
-  padding: 14px 16px !important;
+  padding: 12px 10px !important;
   border-right: 1px solid #d8e2ef !important;
   border-bottom: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
   text-align: center !important;
   vertical-align: middle !important;
   overflow: visible;
@@ -552,8 +570,8 @@ table tbody tr:hover td {
 }
 
 .usuarios-table .acciones-cell {
-  width: 82px;
-  padding: 10px 12px !important;
+  width: 96px;
+  padding: 8px 6px !important;
   border-left: 0 !important;
   background: #ffffff !important;
   text-align: center !important;
@@ -702,7 +720,7 @@ table tbody tr:hover td {
 
 @media (max-width: 1024px) {
   .usuarios-table .col-usuario {
-    width: 32%;
+    width: 30%;
   }
 
   .usuarios-table .col-documento {
@@ -722,7 +740,7 @@ table tbody tr:hover td {
   }
 
   .usuarios-table .col-acciones {
-    width: 8%;
+    width: 10%;
   }
 
   .usuarios-table th,
