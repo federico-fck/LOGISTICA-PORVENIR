@@ -842,7 +842,12 @@ BEGIN;
 
 INSERT INTO areas (nombre_area, descripcion, estado)
 VALUES
-  ('Administracion', 'Area administrativa inicial para el usuario administrador.', 'ACTIVO');
+  ('Operaciones / Mina', 'Area responsable de la operacion minera.', 'ACTIVO'),
+  ('Mantenimiento / Maestranza', 'Area encargada del mantenimiento de equipos e infraestructura.', 'ACTIVO'),
+  ('Seguridad Industrial (HSE)', 'Area responsable de seguridad industrial y dotacion de EPP.', 'ACTIVO'),
+  ('Logística / Almacenes', 'Area responsable del control fisico de insumos.', 'ACTIVO'),
+  ('Administración / Gerencia', 'Area administrativa de apoyo.', 'ACTIVO'),
+  ('Otros / Terceros', 'Area para terceros, otros servicios y casos no clasificados.', 'ACTIVO');
 
 INSERT INTO roles (nombre_rol, descripcion, estado)
 VALUES
@@ -962,7 +967,7 @@ SELECT
   FALSE
 FROM areas a
 CROSS JOIN roles r
-WHERE a.nombre_area = 'Administracion'
+WHERE a.nombre_area = 'Administración / Gerencia'
   AND r.nombre_rol = 'Administrador del sistema';
 
 COMMIT;
